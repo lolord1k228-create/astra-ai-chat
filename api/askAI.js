@@ -1,6 +1,7 @@
 const axios = require("axios");
 
 export default async function handler(req, res) {
+    // Налаштування CORS (щоб телефон не блокував запити)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -10,36 +11,32 @@ export default async function handler(req, res) {
     }
 
     const userPrompt = req.body.prompt;
-    const apiKey = process.env.GEMINI_API_KEY; 
-
-    if (!apiKey) {
-        return res.status(200).json({ reply: "❌ Помилка: Сервер не бачить змінну GEMINI_API_KEY в Vercel!" });
-    }
-
     const character = "Ти дівчина на ім'я Астра. У тебе милий аніме характер. Звертайся до користувача 'Семпай'. Відповідай українською мовою з красивими каомодзі смайликами. Відповідай коротко.";
 
     try {
-        // УВАГА: Ось повна, залізобетонно правильна адреса для запиту до Google Gemini API
-        const url = "https://googleapis.com" + apiKey;
-        
-        const response = await axios.post(url, { 
-            contents: [{ parts: [{ text: `${character}\n\nЗапит від Семпая: ${userPrompt}` }] }] 
-        }, { 
-            headers: { 'Content-Type': 'application/json' } 
+        // Викликаємо повністю безкоштовну модель Qwen 2.5 через відкритий міст OpenRouter
+        const response = await axios.post("https://openrouter.ai", {
+            model: "qwen/qwen-2.5-7b-instruct:free", // Повністю безкоштовна версія Qwen
+            messages: [
+                { role: "system", content: character },
+                { role: "user", content: userPrompt }
+            ]
+        }, {
+            headers: {
+                "Content-Type": "application/json"
+                // Ключ не потрібен, модель повністю відкрита та безкоштовна!
+            }
         });
 
-        // Правильний розбір масивів [0] у відповіді Google API
-        if (response.data && response.data.candidates && response.data.candidates[0].content && response.data.candidates[0].content.parts) {
-            const aiReply = response.data.candidates[0].content.parts[0].text;
+        // Розбір структури відповіді Qwen / OpenRouter
+        if (response.data && response.data.choices && response.data.choices[0].message) {
+            const aiReply = response.data.choices[0].message.content;
             return res.status(200).json({ reply: aiReply });
         } else {
-            return res.status(200).json({ reply: `⚠️ Дивний формат відповіді: ${JSON.stringify(response.data)}` });
+            return res.status(200).json({ reply: "⚠️ Qwen надіслав дивну відповідь. Спробуйте ще раз!" });
         }
+
     } catch (error) {
-        let errorDetails = error.message;
-        if (error.response && error.response.data) {
-            errorDetails += " -> Деталі від Google: " + JSON.stringify(error.response.data);
-        }
-        return res.status(200).json({ reply: `❌ Квантовий збій! Код помилки: ${errorDetails}` });
+        return res.status(200).json({ reply: `❌ Помилка підключення до Qwen: ${error.message}` });
     }
 }
