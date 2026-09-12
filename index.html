@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASTRA // AI Interface</title>
+    <style>
+        :root {
+            --bg-dark: #080810;
+            --panel-bg: #0d0d18;
+            --neon-blue: #00f0ff;
+            --neon-pink: #ff007f;
+            --text-main: #c4c4ec;
+            --glow: 0 0 10px rgba(0, 240, 255, 0.4);
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--panel-bg);
+            border-right: 1px solid rgba(0, 240, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .new-chat-btn {
+            background: transparent;
+            border: 1px solid var(--neon-pink);
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px var(--neon-pink);
+            box-shadow: 0 0 5px rgba(255, 0, 127, 0.2);
+            transition: 0.3s;
+        }
+
+        .new-chat-btn:hover {
+            background: var(--neon-pink);
+            box-shadow: 0 0 15px var(--neon-pink);
+        }
+
+        .history-list {
+            flex: 1;
+            margin-top: 20px;
+            overflow-y: auto;
+            font-size: 13px;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            color: #8af;
+        }
+
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(180deg, #090915 0%, #05050a 100%);
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background: rgba(13, 13, 24, 0.8);
+            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: var(--glow);
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--neon-blue);
+            border-radius: 50%;
+            box-shadow: var(--glow);
+            animation: pulse 1.5s infinite;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .msg {
+            padding: 15px 20px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.5;
+            font-size: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .user {
+            background: rgba(255, 0, 127, 0.1);
+            border: 1px solid rgba(255, 0, 127, 0.3);
+            align-self: flex-end;
+            color: #fff;
+            border-bottom-right-radius: 0px;
+        }
+
+        .ai {
+            background: rgba(0, 240, 255, 0.05);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            align-self: flex-start;
+            border-bottom-left-radius: 0px;
+        }
+
+        .input-area {
+            padding: 25px;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            background: #0e0e1a;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 8px;
+            padding: 5px;
+            box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.1);
+        }
+
+        input {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            background: transparent;
+            color: #fff;
+            outline: none;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        button.send-btn {
+            background: transparent;
+            border: none;
+            color: var(--neon-blue);
+            padding: 0 20px;
+            cursor: pointer;
+            font-weight: bold;
+            text-shadow: var(--glow);
+            transition: 0.2s;
+        }
+
+        button.send-btn:hover {
+            color: #fff;
+            text-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <button class="new-chat-btn">+ НОВИЙ ЦИКЛ</button>
+        <div class="history-list">
+            <div class="history-item">// C0RE_LOG_01</div>
+            <div class="history-item">// MEMORY_CELL_TA0</div>
+        </div>
+    </div>
+
+    <div class="main-chat">
+        <div class="chat-header">
+            <div class="status-dot"></div>
+            ASTRA_v2.5 // Аніме-Матриця
+        </div>
+        
+        <div class="messages" id="chat">
+            <div class="msg ai">Привіт, Семпай! 🌟 Я Астра, твоя хмарна ІІ-система. Готова до синхронізації! Що ми сьогодні розберемо? (⁠｡⁠♥⁠‿⁠♥⁠｡⁠)</div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input type="text" id="inp" placeholder="Введіть директиву для Астри...">
+                <button class="send-btn" id="btn">RUN</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const chat = document.getElementById('chat');
+    const inp = document.getElementById('inp');
+    const btn = document.getElementById('btn');
+
+    async function send() {
+        const text = inp.value.trim();
+        if(!text) return;
+
+        addMsg(text, 'user');
+        inp.value = '';
+
+        const loaderId = addMsg('Астра завантажує матрицю даних... ⏳', 'ai');
+
+        try {
+            const res = await fetch('/askAI', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: text })
+            });
+            const data = await res.json();
+            document.getElementById(loaderId).innerText = data.reply || 'Ой... Щось зламалося у моїх платах (⁠｡⁠✖⁠╭⁠╮⁠✖⁠｡⁠)';
+        } catch {
+            document.getElementById(loaderId).innerText = 'Мережевий збій! Зв\'язок перервано... (⁠＞⁠﹏⁠＜⁠)';
+        }
+    }
+
+    function addMsg(text, sender) {
+        const div = document.createElement('div');
+        const id = 'm-' + Date.now();
+        div.id = id; div.className = `msg ${sender}`; div.innerText = text;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+        return id;
+    }
+
+    btn.addEventListener('click', send);
+    inp.addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
+</script>
+</body>
+</html>
+
