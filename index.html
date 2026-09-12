@@ -3,209 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASTRA // AI Interface</title>
+    <title>ChatGPT // ASTRA</title>
     <style>
         :root {
-            --bg-dark: #080810;
-            --panel-bg: #0d0d18;
-            --neon-blue: #00f0ff;
+            --chatgpt-bg: #212121;
+            --chatgpt-sidebar: #171717;
+            --chatgpt-input: #2f2f2f;
+            --chatgpt-text: #ececec;
             --neon-pink: #ff007f;
-            --text-main: #c4c4ec;
-            --glow: 0 0 10px rgba(0, 240, 255, 0.4);
+            --neon-blue: #00f0ff;
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--chatgpt-bg);
+            color: var(--chatgpt-text);
             display: flex;
             height: 100vh;
             margin: 0;
             overflow: hidden;
         }
 
+        /* Боковое меню 1 в 1 как ChatGPT */
         .sidebar {
             width: 260px;
-            background: var(--panel-bg);
-            border-right: 1px solid rgba(0, 240, 255, 0.2);
+            background: var(--chatgpt-sidebar);
             display: flex;
             flex-direction: column;
-            padding: 15px;
-            box-shadow: 2px 0 15px rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .new-chat-btn {
             background: transparent;
-            border: 1px solid var(--neon-pink);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff;
-            padding: 12px;
-            border-radius: 6px;
+            padding: 10px 14px;
+            border-radius: 8px;
             cursor: pointer;
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-shadow: 0 0 5px var(--neon-pink);
-            box-shadow: 0 0 5px rgba(255, 0, 127, 0.2);
-            transition: 0.3s;
+            font-size: 14px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s, border-color 0.2s;
         }
 
         .new-chat-btn:hover {
-            background: var(--neon-pink);
-            box-shadow: 0 0 15px var(--neon-pink);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--neon-pink);
         }
 
         .history-list {
             flex: 1;
             margin-top: 20px;
             overflow-y: auto;
-            font-size: 13px;
         }
 
         .history-item {
             padding: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-radius: 6px;
             cursor: pointer;
-            color: #8af;
+            font-size: 13px;
+            color: #b4b4b4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background 0.2s;
         }
 
+        .history-item:hover {
+            background: #2a2a2a;
+            color: #fff;
+        }
+
+        /* Главная зона чата */
         .main-chat {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background: linear-gradient(180deg, #090915 0%, #05050a 100%);
+            position: relative;
         }
 
         .chat-header {
-            padding: 15px 20px;
-            background: rgba(13, 13, 24, 0.8);
-            border-bottom: 1px solid rgba(0, 240, 255, 0.1);
-            font-size: 20px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: var(--glow);
-            letter-spacing: 2px;
+            padding: 14px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #b4b4b4;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background: var(--neon-blue);
             border-radius: 50%;
-            box-shadow: var(--glow);
-            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 8px var(--neon-blue);
         }
 
         .messages {
             flex: 1;
-            padding: 30px;
+            padding: 0 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 20px;
         }
 
-        .msg {
-            padding: 15px 20px;
-            border-radius: 12px;
-            max-width: 80%;
-            line-height: 1.5;
-            font-size: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        /* Стилизация сообщений ChatGPT */
+        .msg-container {
+            display: flex;
+            padding: 24px 0;
+            width: 100%;
+            max-width: 672px;
+            margin: 0 auto;
+            gap: 16px;
         }
 
-        .user {
-            background: rgba(255, 0, 127, 0.1);
-            border: 1px solid rgba(255, 0, 127, 0.3);
-            align-self: flex-end;
-            color: #fff;
-            border-bottom-right-radius: 0px;
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            flex-shrink: 0;
         }
 
-        .ai {
-            background: rgba(0, 240, 255, 0.05);
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            align-self: flex-start;
-            border-bottom-left-radius: 0px;
+        .user-avatar { background: #543a4b; color: #fff; border: 1px solid var(--neon-pink); }
+        .ai-avatar { background: #19c37d; color: #fff; border: 1px solid var(--neon-blue); }
+
+        .msg-content {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ececec;
+            word-break: break-word;
+            padding-top: 2px;
         }
 
+        /* Поле ввода внизу экрана */
         .input-area {
-            padding: 25px;
-            background: transparent;
+            padding: 0 20px 24px 20px;
             display: flex;
             justify-content: center;
+            background: linear-gradient(180deg, rgba(33,33,33,0) 0%, rgba(33,33,33,1) 50%);
         }
 
         .input-wrapper {
             width: 100%;
-            max-width: 700px;
+            max-width: 672px;
             display: flex;
-            background: #0e0e1a;
-            border: 1px solid rgba(0, 240, 255, 0.3);
-            border-radius: 8px;
-            padding: 5px;
-            box-shadow: inset 0 0 10px rgba(0, 240, 255, 0.1);
+            align-items: center;
+            background: var(--chatgpt-input);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 14px;
+            padding: 10px 14px;
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         input {
             flex: 1;
-            padding: 14px;
             border: none;
             background: transparent;
             color: #fff;
             outline: none;
-            font-size: 15px;
-            font-family: inherit;
+            font-size: 16px;
+            padding-right: 40px;
         }
 
-        button.send-btn {
-            background: transparent;
+        .send-btn {
+            position: absolute;
+            right: 12px;
+            background: #fff;
+            color: #000;
             border: none;
-            color: var(--neon-blue);
-            padding: 0 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: bold;
-            text-shadow: var(--glow);
-            transition: 0.2s;
+            transition: opacity 0.2s;
         }
 
-        button.send-btn:hover {
-            color: #fff;
-            text-shadow: 0 0 15px var(--neon-blue);
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.4; }
-            50% { opacity: 1; }
-            100% { opacity: 0.4; }
+        .send-btn:hover {
+            opacity: 0.8;
+            box-shadow: 0 0 10px var(--neon-pink);
         }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <button class="new-chat-btn">+ НОВИЙ ЦИКЛ</button>
+        <button class="new-chat-btn">
+            <span>+ Новий чат</span>
+            <span style="color: var(--neon-pink); font-size: 11px;">ASTRA</span>
+        </button>
         <div class="history-list">
-            <div class="history-item">// C0RE_LOG_01</div>
-            <div class="history-item">// MEMORY_CELL_TA0</div>
+            <div class="history-item">🤖 Синхронізація плати...</div>
+            <div class="history-item">🌸 Запит Семпая #01</div>
         </div>
     </div>
 
     <div class="main-chat">
         <div class="chat-header">
             <div class="status-dot"></div>
-            ASTRA_v2.5 // Аніме-Матриця
+            ChatGPT 4o // Модуль: ASTRA
         </div>
         
         <div class="messages" id="chat">
-            <div class="msg ai">Привіт, Семпай! 🌟 Я Астра, твоя хмарна ІІ-система. Готова до синхронізації! Що ми сьогодні розберемо? (⁠｡⁠♥⁠‿⁠♥⁠｡⁠)</div>
+            <div class="msg-container">
+                <div class="avatar ai-avatar">AS</div>
+                <div class="msg-content">Привіт, Семпай! 🌟 Я Астра, твоя хмарна ІІ-система в оболонці ChatGPT. Готова до роботи! Про що поговоримо сьогодні? (⁠｡⁠♥⁠‿⁠♥⁠｡⁠)</div>
+            </div>
         </div>
 
         <div class="input-area">
             <div class="input-wrapper">
-                <input type="text" id="inp" placeholder="Введіть директиву для Астри...">
-                <button class="send-btn" id="btn">RUN</button>
+                <input type="text" id="inp" placeholder="Надіслати повідомлення Астрі...">
+                <button class="send-btn" id="btn">↑</button>
             </div>
         </div>
     </div>
@@ -219,10 +242,10 @@
         const text = inp.value.trim();
         if(!text) return;
 
-        addMsg(text, 'user');
+        addMsg(text, 'user', 'U');
         inp.value = '';
 
-        const loaderId = addMsg('Астра завантажує матрицю даних... ⏳', 'ai');
+        const loaderId = addMsg('Астра аналізує... ⏳', 'ai', 'AS');
 
         try {
             const res = await fetch('/askAI', {
@@ -237,11 +260,25 @@
         }
     }
 
-    function addMsg(text, sender) {
-        const div = document.createElement('div');
+    function addMsg(text, sender, letter) {
         const id = 'm-' + Date.now();
-        div.id = id; div.className = `msg ${sender}`; div.innerText = text;
-        chat.appendChild(div);
+        
+        const container = document.createElement('div');
+        container.className = 'msg-container';
+        
+        const avatar = document.createElement('div');
+        avatar.className = `avatar ${sender}-avatar`;
+        avatar.innerText = letter;
+        
+        const content = document.createElement('div');
+        content.className = 'msg-content';
+        content.id = id;
+        content.innerText = text;
+        
+        container.appendChild(avatar);
+        container.appendChild(content);
+        chat.appendChild(container);
+        
         chat.scrollTop = chat.scrollHeight;
         return id;
     }
@@ -251,4 +288,3 @@
 </script>
 </body>
 </html>
-
