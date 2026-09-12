@@ -21,14 +21,12 @@ export default async function handler(req, res) {
             ]
         }, {
             headers: {
-                "Content-Type": "application/json",
-                // Обов'язкові технічні заголовки для безкоштовного доступу OpenRouter
-                "HTTP-Referer": "https://vercel.com", 
-                "X-Title": "Astra AI Chat"
+                "Content-Type": "application/json"
+                // Заголовок HTTP-Referer повністю прибрано, щоб OpenRouter не видавав помилку
             }
         });
 
-        // Виправлено: додано точний індекс масиву, щоб правильно прочитати відповідь Qwen
+        // Перевіряємо відповідь за офіційним стандартом OpenRouter
         if (response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].message) {
             const aiReply = response.data.choices[0].message.content;
             return res.status(200).json({ reply: aiReply });
