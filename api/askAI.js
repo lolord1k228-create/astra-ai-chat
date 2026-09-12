@@ -1,7 +1,6 @@
 const axios = require("axios");
 
 export default async function handler(req, res) {
-    // Налаштування CORS (щоб телефон не блокував запити)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -13,27 +12,33 @@ export default async function handler(req, res) {
     const userPrompt = req.body.prompt;
     const apiKey = process.env.GEMINI_API_KEY; 
 
-    const character = "Ти дівчина на ім'я Астра. У тебе милий аніме характер. Звертайся до користувача 'Семпай'. Відповідай українською мовою з красивими каомодзі смайликами. Відповідай коротко.";
+    // Спеціальна перевірка: чи взагалі Vercel бачить ваш ключ
+    if (!apiKey) {
+        return res.status(200).json({ reply: "❌ Помилка налаштування Vercel: Сервер взагалі не бачить змінну GEMINI_API_KEY. Перевірте вкладку Environment Variables!" });
+    }
+
+    const character = "Ти дівчина на ім'я Астра. У тебе милий аніме характер. Звертайся до користувача 'Семпай'. Відповідай українською мовою з каомодзі.";
 
     try {
-        // ОНОВЛЕНО: Нова офіційна адреса Google API для моделей серії Gemini 2.5
         const response = await axios.post(
             `https://googleapis.com{apiKey}`,
-            { 
-                contents: [{ parts: [{ text: `${character}\n\nЗапит: ${userPrompt}` }] }] 
-            },
+            { contents: [{ parts: [{ text: `${character}\n\nЗапит: ${userPrompt}` }] }] },
             { headers: { 'Content-Type': 'application/json' } }
         );
 
-        // Точний розбір нової структури відповіді Google
-        if (response.data.candidates && response.data.candidates[0].content.parts[0].text) {
+        if (response.data && response.data.candidates && response.data.candidates[0] && response.data.candidates[0].content && response.data.candidates[0].content.parts && response.data.candidates[0].content.parts[0]) {
             const aiReply = response.data.candidates[0].content.parts[0].text;
             return res.status(200).json({ reply: aiReply });
         } else {
-            return res.status(500).json({ error: "Неправильний формат відповіді Google" });
+            // Якщо формат відповіді змінився, показуємо що саме прислав Google
+            return res.status(200).json({ reply: `⚠️ Дивний формат відповіді від Google. Сирі дані: ${JSON.stringify(response.data)}` });
         }
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "Помилка сервера ШІ" });
+        let errorDetails = error.message;
+        if (error.response && error.response.data) {
+            errorDetails += " -> Справжня причина від Google: " + JSON.stringify(error.response.data);
+        }
+        // Надсилаємо точну помилку прямо в екран чату користувачу!
+        return res.status(200).json({ reply: `❌ Квантовий збій системи! Код помилки: ${errorDetails}` });
     }
 }
