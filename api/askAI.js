@@ -1,5 +1,3 @@
-const axios = require("axios");
-
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -10,27 +8,33 @@ export default async function handler(req, res) {
     }
 
     const userPrompt = req.body.prompt;
-    const character = "Ти дівчина на ім'я Астра. У тебе милий аніме характер. Звертайся до користувача 'Семпай'. Відповідай українською мовою з красивими каомодзі смайликами. Відповідай дуже коротко.";
+    const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+        return res.status(200).json({ reply: "❌ Помилка: Ключ GEMINI_API_KEY не знайдено у Vercel!" });
+    }
+
+    const character = "Ти дівчина на ім'я Астра з милим аніме характером. Звертайся до користувача 'Семпай'. Відповідай українською мовою з красивими каомодзі смайликами. Відповідай дуже коротко.";
 
     try {
-        // Викликаємо безкоштовний хмарний сервер Hugging Face (модель Llama 3)
-        const response = await axios.post("https://huggingface.co", {
-            inputs: `<|system|>\n${character}\n<|user|>\n${userPrompt}\n<|assistant|>\n`
-        }, {
-            headers: { "Content-Type": "application/json" }
+        const url = `https://googleapis.com{apiKey}`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: `${character}\n\nЗапит: ${userPrompt}` }] }]
+            })
         });
 
-        // Простий та надійний розбір відповіді від Hugging Face
-        if (response.data && response.data[0] && response.data[0].generated_text) {
-            let fullText = response.data[0].generated_text;
-            // Прибираємо технічний текст промпту, залишаючи тільки чисту відповідь ШІ
-            let aiReply = fullText.split("<|assistant|>\n")[1] || fullText;
-            return res.status(200).json({ reply: aiReply.trim() });
-        } else {
-            return res.status(200).json({ reply: `⚠️ Сталася помилка відповіді системи... (⁠＞⁠﹏⁠＜⁠)` });
-        }
+        const data = await response.json();
 
+        if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0]) {
+            return res.status(200).json({ reply: data.candidates[0].content.parts[0].text });
+        } else {
+            return res.status(200).json({ reply: `❌ Помилка формату Google. Сирі дані: ${JSON.stringify(data)}` });
+        }
     } catch (error) {
-        return res.status(200).json({ reply: `❌ Квантовий збій! Астра оновлює модулі зв'язку... (⁠｡⁠✖⁠╭⁠╮⁠✖⁠｡⁠)` });
+        return res.status(200).json({ reply: `❌ Помилка з'єднання: ${error.message}` });
     }
 }
