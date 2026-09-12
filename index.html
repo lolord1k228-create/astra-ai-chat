@@ -15,15 +15,15 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             height: 100%;
             width: 100%;
-            overflow: hidden; /* Запрещаем общий скролл страницы */
+            overflow: hidden; /* Запрещаем общий скролл страницы браузера */
         }
 
-        /* Главный контейнер на весь экран смартфона */
+        /* Главный контейнер точно под размеры экрана любого смартфона */
         .chat-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
-            height: -webkit-fill-available; /* Исправление высоты для мобильных браузеров */
+            height: -webkit-fill-available; /* Фикс высоты для мобильного Chrome/Safari */
             width: 100%;
             position: relative;
         }
@@ -51,7 +51,7 @@
             box-shadow: 0 0 8px #00f0ff;
         }
 
-        /* СКРОЛЛИТСЯ ТОЛЬКО ЭТА ЗОНА С ТЕКСТОМ */
+        /* Скроллится только эта внутренняя зона с сообщениями */
         .messages-box {
             flex: 1;
             overflow-y: auto;
@@ -92,7 +92,7 @@
             padding-top: 4px;
         }
 
-        /* ФИКСИРОВАННАЯ НИЖНЯЯ ПАНЕЛЬ ВВОДА */
+        /* Фиксированная нижняя панель ввода (всегда на экране) */
         .input-area {
             padding: 10px 20px 20px 20px;
             background-color: #212121;
@@ -172,13 +172,6 @@
     const inp = document.getElementById('inp');
     const btn = document.getElementById('btn');
 
-    // Безопасный обход систем защиты GitHub
-    const k1 = "AQ.Ab8RN6L0IXMjyB_dqNu6zv";
-    const k2 = "0F7iqQsVhCi0e_1BH68tkTcFTqjg";
-    const KEY = k1 + k2;
-
-    const character = "Ти дівчина на ім'я Астра. У тебе милий аніме характер. Звертайся до користувача 'Семпай'. Відповідай українською мовою з красивими каомодзі смайликами. Відповідай коротко.";
-
     async function send() {
         const val = inp.value.trim();
         if(!val) return;
@@ -189,25 +182,22 @@
         const id = show('Астра думає... ⏳', 'ai', 'AS');
 
         try {
-            const url = `https://googleapis.com{KEY}`;
-            const res = await fetch(url, {
+            // Безопасный запрос через прокси-сервер Vercel
+            const res = await fetch('/api/askAI', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: character + "\n\nЗапит: " + val }] }]
-                })
+                body: JSON.stringify({ prompt: val })
             });
 
             const data = await res.json();
             
-            // ИСПРАВЛЕНО: Точный разбор вложенной структуры Google Gemini API
-            if(data.candidates && data.candidates[0].content.parts[0].text) {
-                document.getElementById(id).innerText = data.candidates[0].content.parts[0].text;
+            if(data.reply) {
+                document.getElementById(id).innerText = data.reply;
             } else {
                 document.getElementById(id).innerText = "Ой, сталася помилка відповіді системи... (⁠＞⁠﹏⁠＜⁠)";
             }
         } catch (e) {
-            document.getElementById(id).innerText = "Збій мережі хмари або невірний ключ. (⁠｡⁠✖⁠╭⁠╮⁠✖⁠｡⁠)";
+            document.getElementById(id).innerText = "Збій мережі хмари. Спробуйте ще раз! (⁠｡⁠✖⁠╭⁠╮⁠✖⁠｡⁠)";
         }
     }
 
@@ -218,7 +208,7 @@
         r.innerHTML = `<div class="avatar ${sender}-av">${letter}</div><div class="text" id="${id}">${txt}</div>`;
         box.appendChild(r);
         
-        // Автоматический скролл вниз при новом сообщении
+        // Автоматический скролл вниз
         box.scrollTop = box.scrollHeight;
         return id;
     }
@@ -226,7 +216,6 @@
     btn.addEventListener('click', send);
     inp.addEventListener('keypress', (e) => { if(e.key === 'Enter') send(); });
 
-    // Дополнительное исправление для мобильных при открытии клавиатуры
     window.addEventListener('resize', () => {
         box.scrollTop = box.scrollHeight;
     });
