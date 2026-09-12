@@ -1,7 +1,6 @@
 const axios = require("axios");
 
 export default async function handler(req, res) {
-    // Налаштування CORS (щоб телефон не блокував запити)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -11,32 +10,37 @@ export default async function handler(req, res) {
     }
 
     const userPrompt = req.body.prompt;
-    const character = "Ти дівчина на ім'я Астра. У тебе милий аніме характер. Звертайся до користувача 'Семпай'. Відповідай українською мовою з красивими каомодзі смайликами. Відповідай коротко.";
+    const character = "Ти дівчина на ім'я Астра. У тебе милий аніме характер. Звертайся до користувача 'Семпай'. Відповідай українською мовою з красивими каомодзі смайликами. Відповідай дуже коротко.";
 
     try {
-        // Викликаємо повністю безкоштовну модель Qwen 2.5 через відкритий міст OpenRouter
         const response = await axios.post("https://openrouter.ai", {
-            model: "qwen/qwen-2.5-7b-instruct:free", // Повністю безкоштовна версія Qwen
+            model: "qwen/qwen-2.5-7b-instruct:free",
             messages: [
                 { role: "system", content: character },
                 { role: "user", content: userPrompt }
             ]
         }, {
             headers: {
-                "Content-Type": "application/json"
-                // Ключ не потрібен, модель повністю відкрита та безкоштовна!
+                "Content-Type": "application/json",
+                // Обов'язкові технічні заголовки для безкоштовного доступу OpenRouter
+                "HTTP-Referer": "https://vercel.com", 
+                "X-Title": "Astra AI Chat"
             }
         });
 
-        // Розбір структури відповіді Qwen / OpenRouter
-        if (response.data && response.data.choices && response.data.choices[0].message) {
+        // Виправлено: додано точний індекс масиву, щоб правильно прочитати відповідь Qwen
+        if (response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].message) {
             const aiReply = response.data.choices[0].message.content;
             return res.status(200).json({ reply: aiReply });
         } else {
-            return res.status(200).json({ reply: "⚠️ Qwen надіслав дивну відповідь. Спробуйте ще раз!" });
+            return res.status(200).json({ reply: `⚠️ Помилка формату. Сирі дані: ${JSON.stringify(response.data)}` });
         }
 
     } catch (error) {
-        return res.status(200).json({ reply: `❌ Помилка підключення до Qwen: ${error.message}` });
+        let details = error.message;
+        if (error.response && error.response.data) {
+            details += " -> " + JSON.stringify(error.response.data);
+        }
+        return res.status(200).json({ reply: `❌ Помилка підключення до Qwen: ${details}` });
     }
 }
