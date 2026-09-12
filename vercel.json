@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "routes": [
+    { "src": "/api/askAI", "dest": "api/askAI.js" },
+    { "src": "/(.*)", "dest": "public/$1" }
+  ]
+}
+
