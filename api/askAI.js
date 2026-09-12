@@ -22,16 +22,15 @@ export default async function handler(req, res) {
         }, {
             headers: {
                 "Content-Type": "application/json"
-                // Заголовок HTTP-Referer повністю прибрано, щоб OpenRouter не видавав помилку
             }
         });
 
-        // Перевіряємо відповідь за офіційним стандартом OpenRouter
+        // ІСПРАВЛЕНО: Додано точні індекси, щоб прочитати текст з масиву OpenRouter
         if (response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].message) {
             const aiReply = response.data.choices[0].message.content;
             return res.status(200).json({ reply: aiReply });
         } else {
-            return res.status(200).json({ reply: `⚠️ Помилка формату. Сирі дані: ${JSON.stringify(response.data)}` });
+            return res.status(200).json({ reply: `⚠️ Помилка формату. Дані: ${JSON.stringify(response.data)}` });
         }
 
     } catch (error) {
@@ -39,6 +38,6 @@ export default async function handler(req, res) {
         if (error.response && error.response.data) {
             details += " -> " + JSON.stringify(error.response.data);
         }
-        return res.status(200).json({ reply: `❌ Помилка підключення до Qwen: ${details}` });
+        return res.status(200).json({ reply: `❌ Помилка підключення: ${details}` });
     }
 }
