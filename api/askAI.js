@@ -13,31 +13,24 @@ export default async function handler(req, res) {
     const character = "Ти дівчина на ім'я Астра. У тебе милий аніме характер. Звертайся до користувача 'Семпай'. Відповідай українською мовою з красивими каомодзі смайликами. Відповідай дуже коротко.";
 
     try {
-        const response = await axios.post("https://openrouter.ai", {
-            model: "qwen/qwen-2.5-7b-instruct:free",
-            messages: [
-                { role: "system", content: character },
-                { role: "user", content: userPrompt }
-            ]
+        // Викликаємо безкоштовний хмарний сервер Hugging Face (модель Llama 3)
+        const response = await axios.post("https://huggingface.co", {
+            inputs: `<|system|>\n${character}\n<|user|>\n${userPrompt}\n<|assistant|>\n`
         }, {
-            headers: {
-                "Content-Type": "application/json"
-            }
+            headers: { "Content-Type": "application/json" }
         });
 
-        // ІСПРАВЛЕНО: Додано точні індекси, щоб прочитати текст з масиву OpenRouter
-        if (response.data && response.data.choices && response.data.choices[0] && response.data.choices[0].message) {
-            const aiReply = response.data.choices[0].message.content;
-            return res.status(200).json({ reply: aiReply });
+        // Простий та надійний розбір відповіді від Hugging Face
+        if (response.data && response.data[0] && response.data[0].generated_text) {
+            let fullText = response.data[0].generated_text;
+            // Прибираємо технічний текст промпту, залишаючи тільки чисту відповідь ШІ
+            let aiReply = fullText.split("<|assistant|>\n")[1] || fullText;
+            return res.status(200).json({ reply: aiReply.trim() });
         } else {
-            return res.status(200).json({ reply: `⚠️ Помилка формату. Дані: ${JSON.stringify(response.data)}` });
+            return res.status(200).json({ reply: `⚠️ Сталася помилка відповіді системи... (⁠＞⁠﹏⁠＜⁠)` });
         }
 
     } catch (error) {
-        let details = error.message;
-        if (error.response && error.response.data) {
-            details += " -> " + JSON.stringify(error.response.data);
-        }
-        return res.status(200).json({ reply: `❌ Помилка підключення: ${details}` });
+        return res.status(200).json({ reply: `❌ Квантовий збій! Астра оновлює модулі зв'язку... (⁠｡⁠✖⁠╭⁠╮⁠✖⁠｡⁠)` });
     }
 }
