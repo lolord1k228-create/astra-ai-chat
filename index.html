@@ -39,6 +39,7 @@ body{background:#0b0e14;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .flame-card.dead .flame-status{color:#ef4444}
 .timer{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.5px;margin-bottom:6px;transition:color .3s}
 .timer.green{color:#4ade80;text-shadow:0 0 14px rgba(74,222,128,.45)}
+.timer.orange{color:#fb923c;text-shadow:0 0 14px rgba(251,146,60,.45)}
 .timer.red{color:#ef4444;text-shadow:0 0 14px rgba(239,68,68,.45);animation:blinkRed 1s ease-in-out infinite}
 @keyframes blinkRed{0%,100%{opacity:1}50%{opacity:.5}}
 .timer-label{font-size:11px;color:#6b7a90;text-transform:uppercase;letter-spacing:.8px}
@@ -93,10 +94,10 @@ body{background:#0b0e14;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 <span class="flame-emoji" id="flameEmoji">🔥</span>
 <div class="flame-status" id="flameStatus">Вогник горить!</div>
 <div class="timer green" id="timerDisplay">--:--:--</div>
-<div class="timer-label" id="timerLabel">Згасне через</div>
+<div class="timer-label" id="timerLabel">Наступне підкидання через</div>
 </div>
 <div class="actions">
-<button class="btn btn-feed" id="btnFeed">🔥 Підкинути дров (+1 день)</button>
+<button class="btn btn-feed" id="btnFeed">🔥 Підкинути дров (+1 ⭐)</button>
 <button class="btn btn-rescue" id="btnRescue" disabled>❤️ Врятувати Вогник (1 🪙)</button>
 <button class="btn btn-buy" id="btnBuy">⭐ Купити монету за 5 зірок</button>
 </div>
@@ -144,12 +145,22 @@ userPhotoUrl = u.photo_url || "";
 }
 const fullName = (userName + (userLastName ? " " + userLastName : "")).trim();
 
-const LIFETIME = 24 * 60 * 60 * 1000;
-const COIN_REWARD_INTERVAL = 10;
-const RESCUE_COST = 1;
-const STAR_COST = 5;
+// ============ КОНСТАНТИ ============
+const DAY_LIFETIME = 24 * 60 * 60 * 1000; // 24 години
+const COIN_REWARD_INTERVAL = 10;            // кожні 10 днів +1 монета
+const RESCUE_COST = 1;                       // ціна порятунку в монетах
+const STAR_COST = 5;                         // ціна монети в зірках
+const STAR_REWARD_PER_FEED = 1;              // +1 зірка за підкидання
 
-let state = { coins: 3, stars: 50, days: 0, isAlive: true, lastFed: Date.now(), name: fullName };
+// ============ СТАН ============
+let state = {
+    coins: 3,
+    stars: 50,
+    days: 0,
+    isAlive: true,
+    lastFed: Date.now(),
+    name: fullName
+};
 let timerInterval = null, leaderboardUnsub = null, userDocUnsub = null, isProcessing = false;
 
 const $ = (id) => document.getElementById(id);
@@ -162,217 +173,318 @@ const btnFeed = $("btnFeed"), btnRescue = $("btnRescue"), btnBuy = $("btnBuy");
 const leaderboardList = $("leaderboardList"), loadingScreen = $("loadingScreen"), toastEl = $("toast");
 
 function showToast(msg, d = 2200) {
-toastEl.textContent = msg;
-toastEl.classList.add("show");
-clearTimeout(toastEl._t);
-toastEl._t = setTimeout(() => toastEl.classList.remove("show"), d);
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(() => toastEl.classList.remove("show"), d);
 }
 
 function formatTimerText(ms) {
-if (ms <= 0) return "00:00:00";
-const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-return `${h}г ${String(m).padStart(2, "0")}хв ${String(sec).padStart(2, "0")}с`;
+    if (ms <= 0) return "00:00:00";
+    const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    return `${h}г ${String(m).padStart(2, "0")}хв ${String(sec).padStart(2, "0")}с`;
 }
 
 function stringToGradient(str) {
-let hash = 0;
-for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-const h1 = Math.abs(hash) % 360, h2 = (h1 + 40) % 360;
-return `linear-gradient(135deg, hsl(${h1},75%,55%), hsl(${h2},80%,45%))`;
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    const h1 = Math.abs(hash) % 360, h2 = (h1 + 40) % 360;
+    return `linear-gradient(135deg, hsl(${h1},75%,55%), hsl(${h2},80%,45%))`;
 }
 
 function setAvatar(box, letterEl, name, photoUrl) {
-const letter = (name || "?").charAt(0).toUpperCase();
-const existingImg = box.querySelector("img");
-if (existingImg) existingImg.remove();
-if (photoUrl) {
-const img = document.createElement("img");
-img.src = photoUrl; img.alt = name;
-img.onerror = () => { img.remove(); letterEl.style.display = "flex"; letterEl.textContent = letter; box.style.background = stringToGradient(name || "?"); };
-box.appendChild(img);
-letterEl.style.display = "none";
-} else {
-letterEl.style.display = "flex"; letterEl.textContent = letter;
-box.style.background = stringToGradient(name || "?");
+    const letter = (name || "?").charAt(0).toUpperCase();
+    const existingImg = box.querySelector("img");
+    if (existingImg) existingImg.remove();
+    if (photoUrl) {
+        const img = document.createElement("img");
+        img.src = photoUrl; img.alt = name;
+        img.onerror = () => { img.remove(); letterEl.style.display = "flex"; letterEl.textContent = letter; box.style.background = stringToGradient(name || "?"); };
+        box.appendChild(img);
+        letterEl.style.display = "none";
+    } else {
+        letterEl.style.display = "flex"; letterEl.textContent = letter;
+        box.style.background = stringToGradient(name || "?");
+    }
 }
+
+// Скільки мс залишилось до наступного підкидання
+function msUntilNextFeed() {
+    const elapsed = Date.now() - state.lastFed;
+    return DAY_LIFETIME - elapsed;
 }
 
 function render() {
-setAvatar(avatarBox, avatarLetter, state.name, userPhotoUrl);
-avatarStatus.classList.toggle("offline", !state.isAlive);
-profileName.textContent = state.name || "Гравець";
-profileId.textContent = "ID: " + userId;
-coinsValue.textContent = state.coins;
-starsValue.textContent = state.stars;
-daysValue.textContent = state.days;
-if (state.isAlive) { flameCard.className = "flame-card alive"; flameEmoji.textContent = "🔥"; flameStatus.textContent = "Вогник горить!"; }
-else { flameCard.className = "flame-card dead"; flameEmoji.textContent = "💨"; flameStatus.textContent = "Вогник згас!"; }
-btnFeed.disabled = !state.isAlive;
-btnRescue.disabled = state.isAlive || state.coins < RESCUE_COST;
-btnBuy.disabled = state.stars < STAR_COST;
-updateTimer();
+    setAvatar(avatarBox, avatarLetter, state.name, userPhotoUrl);
+    avatarStatus.classList.toggle("offline", !state.isAlive);
+    profileName.textContent = state.name || "Гравець";
+    profileId.textContent = "ID: " + userId;
+    coinsValue.textContent = state.coins;
+    starsValue.textContent = state.stars;
+    daysValue.textContent = state.days;
+
+    if (state.isAlive) {
+        flameCard.className = "flame-card alive";
+        flameEmoji.textContent = "🔥";
+        flameStatus.textContent = "Вогник горить!";
+    } else {
+        flameCard.className = "flame-card dead";
+        flameEmoji.textContent = "💨";
+        flameStatus.textContent = "Вогник згас!";
+    }
+
+    // Логіка кнопки "Підкинути дров" — активна тільки якщо минуло 24 год
+    const msLeft = msUntilNextFeed();
+    const canFeed = state.isAlive && msLeft <= 0;
+    btnFeed.disabled = !canFeed;
+
+    if (state.isAlive && msLeft > 0) {
+        // Кнопка заблокована до наступного дня
+        btnFeed.textContent = "🔥 Підкинути дров (незабаром)";
+    } else {
+        btnFeed.textContent = `🔥 Підкинути дров (+${STAR_REWARD_PER_FEED} ⭐)`;
+    }
+
+    btnRescue.disabled = state.isAlive || state.coins < RESCUE_COST;
+    btnBuy.disabled = state.stars < STAR_COST;
+
+    updateTimer();
 }
 
 function updateTimer() {
-if (!state.isAlive) { timerDisplay.textContent = "Вогник згас!"; timerDisplay.className = "timer red"; timerLabel.textContent = "Потрібен порятунок"; return; }
-const remaining = LIFETIME - (Date.now() - state.lastFed);
-if (remaining <= 0) { timerDisplay.textContent = "Вогник згас!"; timerDisplay.className = "timer red"; timerLabel.textContent = "Потрібен порятунок"; return; }
-timerDisplay.textContent = formatTimerText(remaining);
-timerDisplay.className = "timer green";
-timerLabel.textContent = "Згасне через";
+    // Якщо вогник згас — показуємо червоний статус
+    if (!state.isAlive) {
+        timerDisplay.textContent = "Вогник згас!";
+        timerDisplay.className = "timer red";
+        timerLabel.textContent = "Потрібен порятунок";
+        return;
+    }
+
+    const msLeft = msUntilNextFeed();
+
+    // Якщо час минув, але гравець ще не натиснув — вогник от-от згасне
+    if (msLeft <= 0) {
+        timerDisplay.textContent = "Час підкинути дров!";
+        timerDisplay.className = "timer orange";
+        timerLabel.textContent = "Вогник чекає";
+        return;
+    }
+
+    timerDisplay.textContent = formatTimerText(msLeft);
+    timerDisplay.className = "timer green";
+    timerLabel.textContent = "Наступне підкидання через";
 }
 
 async function initUser() {
-const userRef = doc(db, "players", userId);
-const snap = await getDoc(userRef);
-if (!snap.exists()) {
-const np = { coins: 3, stars: 50, days: 0, isAlive: true, lastFed: Date.now(), name: fullName, photoUrl: userPhotoUrl || "", createdAt: serverTimestamp() };
-await setDoc(userRef, np);
-state = { ...np };
-} else {
-const d = snap.data();
-state = { coins: d.coins ?? 3, stars: d.stars ?? 50, days: d.days ?? 0, isAlive: d.isAlive ?? true, lastFed: d.lastFed ?? Date.now(), name: d.name || fullName };
-}
-if (userDocUnsub) userDocUnsub();
-userDocUnsub = onSnapshot(userRef, (ds) => {
-if (!ds.exists()) return;
-const d = ds.data();
-state.coins = d.coins ?? state.coins;
-state.stars = d.stars ?? state.stars;
-state.days = d.days ?? state.days;
-state.isAlive = d.isAlive ?? state.isAlive;
-state.lastFed = d.lastFed ?? state.lastFed;
-state.name = d.name || state.name;
-render();
-});
-render();
+    const userRef = doc(db, "players", userId);
+    const snap = await getDoc(userRef);
+    if (!snap.exists()) {
+        const np = {
+            coins: 3, stars: 50, days: 0, isAlive: true,
+            lastFed: Date.now(), name: fullName,
+            photoUrl: userPhotoUrl || "", createdAt: serverTimestamp()
+        };
+        await setDoc(userRef, np);
+        state = { ...np };
+    } else {
+        const d = snap.data();
+        state = {
+            coins: d.coins ?? 3,
+            stars: d.stars ?? 50,
+            days: d.days ?? 0,
+            isAlive: d.isAlive ?? true,
+            lastFed: d.lastFed ?? Date.now(),
+            name: d.name || fullName
+        };
+    }
+    if (userDocUnsub) userDocUnsub();
+    userDocUnsub = onSnapshot(userRef, (ds) => {
+        if (!ds.exists()) return;
+        const d = ds.data();
+        state.coins = d.coins ?? state.coins;
+        state.stars = d.stars ?? state.stars;
+        state.days = d.days ?? state.days;
+        state.isAlive = d.isAlive ?? state.isAlive;
+        state.lastFed = d.lastFed ?? state.lastFed;
+        state.name = d.name || state.name;
+        render();
+    });
+    render();
 }
 
 async function updateFirestore(fields) {
-try { await updateDoc(doc(db, "players", userId), fields); }
-catch (e) { console.error(e); showToast("Помилка збереження"); }
+    try { await updateDoc(doc(db, "players", userId), fields); }
+    catch (e) { console.error(e); showToast("Помилка збереження"); }
 }
 
+// Вогник гасне, якщо минуло > 48 год (24 год "життя" + 24 год "очікування")
+// Або простіше: якщо минуло > 24 год — можна тільки підкинути, і він продовжиться
+// Але якщо минуло > 48 год — вогник гасне назавжди, поки не врятують
 async function checkFlameStatus() {
-if (!state.isAlive) return;
-if (Date.now() - state.lastFed >= LIFETIME) {
-state.isAlive = false; render();
-await updateFirestore({ isAlive: false });
-showToast("💨 Вогник згас! Потрібен порятунок.");
-}
+    if (!state.isAlive) return;
+    const elapsed = Date.now() - state.lastFed;
+    // Якщо минуло БІЛЬШЕ ніж 24 год — вогник гасне
+    // (гравець має 24 год, щоб підкинути дров, інакше втрачає)
+    if (elapsed >= DAY_LIFETIME) {
+        state.isAlive = false;
+        render();
+        await updateFirestore({ isAlive: false });
+        showToast("💨 Вогник згас! Потрібен порятунок.");
+    }
 }
 
 async function onFeed() {
-if (isProcessing || !state.isAlive) return;
-isProcessing = true; btnFeed.disabled = true;
-try {
-const newDays = state.days + 1, now = Date.now();
-let newCoins = state.coins, earned = false;
-if (newDays % COIN_REWARD_INTERVAL === 0) { newCoins++; earned = true; }
-state.days = newDays; state.coins = newCoins; state.lastFed = now; state.isAlive = true;
-render();
-await updateFirestore({ days: newDays, coins: newCoins, lastFed: now, isAlive: true });
-showToast(earned ? `🎉 +1 монета за ${newDays} днів!` : `🔥 Дров підкинуто! День ${newDays}`);
-} catch (e) { console.error(e); }
-finally { isProcessing = false; render(); }
+    if (isProcessing || !state.isAlive) return;
+    const msLeft = msUntilNextFeed();
+    if (msLeft > 0) {
+        showToast("⏳ Наступне підкидання через " + formatTimerText(msLeft));
+        return;
+    }
+
+    isProcessing = true;
+    btnFeed.disabled = true;
+    try {
+        const newDays = state.days + 1;
+        const now = Date.now();
+        const newStars = state.stars + STAR_REWARD_PER_FEED;
+        let newCoins = state.coins;
+        let coinEarned = false;
+        if (newDays % COIN_REWARD_INTERVAL === 0) {
+            newCoins++;
+            coinEarned = true;
+        }
+
+        state.days = newDays;
+        state.stars = newStars;
+        state.coins = newCoins;
+        state.lastFed = now;
+        state.isAlive = true;
+        render();
+
+        await updateFirestore({
+            days: newDays,
+            stars: newStars,
+            coins: newCoins,
+            lastFed: now,
+            isAlive: true
+        });
+
+        let msg = `🔥 День ${newDays}! +${STAR_REWARD_PER_FEED} ⭐`;
+        if (coinEarned) msg += ` і +1 🪙`;
+        showToast(msg);
+    } catch (e) { console.error(e); }
+    finally { isProcessing = false; render(); }
 }
 
 async function onRescue() {
-if (isProcessing || state.isAlive || state.coins < RESCUE_COST) return;
-isProcessing = true; btnRescue.disabled = true;
-try {
-const newCoins = state.coins - RESCUE_COST, now = Date.now();
-state.coins = newCoins; state.isAlive = true; state.lastFed = now;
-render();
-await updateFirestore({ coins: newCoins, isAlive: true, lastFed: now });
-showToast("❤️ Вогник врятовано!");
-} catch (e) { console.error(e); }
-finally { isProcessing = false; render(); }
+    if (isProcessing || state.isAlive || state.coins < RESCUE_COST) return;
+    isProcessing = true; btnRescue.disabled = true;
+    try {
+        const newCoins = state.coins - RESCUE_COST;
+        const now = Date.now();
+        state.coins = newCoins; state.isAlive = true; state.lastFed = now;
+        render();
+        await updateFirestore({ coins: newCoins, isAlive: true, lastFed: now });
+        showToast("❤️ Вогник врятовано!");
+    } catch (e) { console.error(e); }
+    finally { isProcessing = false; render(); }
 }
 
 async function onBuy() {
-if (isProcessing || state.stars < STAR_COST) return;
-isProcessing = true; btnBuy.disabled = true;
-try {
-const newStars = state.stars - STAR_COST, newCoins = state.coins + 1;
-state.stars = newStars; state.coins = newCoins;
-render();
-await updateFirestore({ stars: newStars, coins: newCoins });
-showToast("🪙 Монету придбано!");
-} catch (e) { console.error(e); }
-finally { isProcessing = false; render(); }
+    if (isProcessing || state.stars < STAR_COST) return;
+    isProcessing = true; btnBuy.disabled = true;
+    try {
+        const newStars = state.stars - STAR_COST;
+        const newCoins = state.coins + 1;
+        state.stars = newStars; state.coins = newCoins;
+        render();
+        await updateFirestore({ stars: newStars, coins: newCoins });
+        showToast("🪙 Монету придбано за 5 ⭐!");
+    } catch (e) { console.error(e); }
+    finally { isProcessing = false; render(); }
 }
 
 function initLeaderboard() {
-if (leaderboardUnsub) leaderboardUnsub();
-const q = query(collection(db, "players"), orderBy("days", "desc"), limit(10));
-leaderboardUnsub = onSnapshot(q, (snap) => {
-const players = [];
-snap.forEach((d) => {
-const data = d.data();
-players.push({ id: d.id, name: data.name || "Гравець", days: data.days || 0, isAlive: data.isAlive, photoUrl: data.photoUrl || "" });
-});
-renderLeaderboard(players);
-}, (err) => {
-console.error(err);
-leaderboardList.innerHTML = '<div class="lb-empty">Не вдалося завантажити</div>';
-});
+    if (leaderboardUnsub) leaderboardUnsub();
+    const q = query(collection(db, "players"), orderBy("days", "desc"), limit(10));
+    leaderboardUnsub = onSnapshot(q, (snap) => {
+        const players = [];
+        snap.forEach((d) => {
+            const data = d.data();
+            players.push({
+                id: d.id, name: data.name || "Гравець",
+                days: data.days || 0, isAlive: data.isAlive,
+                photoUrl: data.photoUrl || ""
+            });
+        });
+        renderLeaderboard(players);
+    }, (err) => {
+        console.error(err);
+        leaderboardList.innerHTML = '<div class="lb-empty">Не вдалося завантажити</div>';
+    });
 }
 
 function escapeHtml(str) { const d = document.createElement("div"); d.textContent = str; return d.innerHTML; }
 
 function renderLeaderboard(players) {
-if (!players.length) { leaderboardList.innerHTML = '<div class="lb-empty">Поки що немає гравців</div>'; return; }
-let html = "";
-players.forEach((p, i) => {
-const rank = i + 1;
-let rc = "";
-if (rank === 1) rc = "gold"; else if (rank === 2) rc = "silver"; else if (rank === 3) rc = "bronze";
-const isCurrent = p.id === userId;
-const rowClass = isCurrent ? "lb-row current-user" : "lb-row";
-const flameIcon = p.isAlive ? "🔥" : "💨";
-const letter = (p.name || "?").charAt(0).toUpperCase();
-const gradient = stringToGradient(p.name || "?");
-const avatarContent = p.photoUrl
-? `<img src="${p.photoUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';this.nextElementSibling.textContent='${letter}';this.parentElement.style.background='${gradient}';">`
-: "";
-html += `<div class="${rowClass}">
-<div class="lb-rank ${rc}">${rank}</div>
-<div class="lb-avatar" style="background:${gradient}">${avatarContent}<span style="display:${p.photoUrl ? "none" : "flex"};width:100%;height:100%;align-items:center;justify-content:center;">${letter}</span></div>
-<div class="lb-name">${escapeHtml(p.name)} ${flameIcon}</div>
-<div class="lb-days">${p.days} дн</div>
-</div>`;
-});
-leaderboardList.innerHTML = html;
+    if (!players.length) {
+        leaderboardList.innerHTML = '<div class="lb-empty">Поки що немає гравців</div>';
+        return;
+    }
+    let html = "";
+    players.forEach((p, i) => {
+        const rank = i + 1;
+        let rc = "";
+        if (rank === 1) rc = "gold"; else if (rank === 2) rc = "silver"; else if (rank === 3) rc = "bronze";
+        const isCurrent = p.id === userId;
+        const rowClass = isCurrent ? "lb-row current-user" : "lb-row";
+        const flameIcon = p.isAlive ? "🔥" : "💨";
+        const letter = (p.name || "?").charAt(0).toUpperCase();
+        const gradient = stringToGradient(p.name || "?");
+        const avatarContent = p.photoUrl
+            ? `<img src="${p.photoUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';this.nextElementSibling.textContent='${letter}';this.parentElement.style.background='${gradient}';">`
+            : "";
+        html += `<div class="${rowClass}">
+            <div class="lb-rank ${rc}">${rank}</div>
+            <div class="lb-avatar" style="background:${gradient}">${avatarContent}<span style="display:${p.photoUrl ? "none" : "flex"};width:100%;height:100%;align-items:center;justify-content:center;">${letter}</span></div>
+            <div class="lb-name">${escapeHtml(p.name)} ${flameIcon}</div>
+            <div class="lb-days">${p.days} дн</div>
+        </div>`;
+    });
+    leaderboardList.innerHTML = html;
 }
 
 function startTimer() {
-if (timerInterval) clearInterval(timerInterval);
-timerInterval = setInterval(async () => { updateTimer(); await checkFlameStatus(); }, 1000);
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(async () => {
+        updateTimer();
+        await checkFlameStatus();
+    }, 1000);
 }
 
 async function init() {
-try {
-await initUser();
-await checkFlameStatus();
-initLeaderboard();
-startTimer();
-btnFeed.addEventListener("click", onFeed);
-btnRescue.addEventListener("click", onRescue);
-btnBuy.addEventListener("click", onBuy);
-setTimeout(() => loadingScreen.classList.add("hidden"), 400);
-render();
-} catch (e) {
-console.error(e);
-loadingScreen.querySelector(".loading-text").textContent = "Помилка завантаження";
-}
+    try {
+        await initUser();
+        await checkFlameStatus();
+        initLeaderboard();
+        startTimer();
+        btnFeed.addEventListener("click", onFeed);
+        btnRescue.addEventListener("click", onRescue);
+        btnBuy.addEventListener("click", onBuy);
+        setTimeout(() => loadingScreen.classList.add("hidden"), 400);
+        render();
+    } catch (e) {
+        console.error("ПОМИЛКА:", e);
+        loadingScreen.querySelector(".loading-text").textContent = "Помилка: " + e.message;
+    }
 }
 
 init();
+
 window.addEventListener("beforeunload", () => {
-if (timerInterval) clearInterval(timerInterval);
-if (leaderboardUnsub) leaderboardUnsub();
-if (userDocUnsub) userDocUnsub();
+    if (timerInterval) clearInterval(timerInterval);
+    if (leaderboardUnsub) leaderboardUnsub();
+    if (userDocUnsub) userDocUnsub();
 });
 </script>
 </body>
