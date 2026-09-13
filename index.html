@@ -50,6 +50,18 @@ body{background:#0b0e14;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .btn-rescue{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 4px 22px rgba(239,68,68,.4)}
 .btn-buy{background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1f2b;box-shadow:0 4px 22px rgba(251,191,36,.35)}
 .actions{display:flex;flex-direction:column;gap:10px}
+.shop{background:#1a1f2b;border-radius:20px;padding:16px;border:1px solid #2a3140;box-shadow:0 4px 20px rgba(0,0,0,.45)}
+.shop-title{font-size:15px;font-weight:700;color:#fbbf24;margin-bottom:12px;text-align:center;letter-spacing:.8px;text-transform:uppercase;text-shadow:0 0 18px rgba(251,191,36,.35)}
+.shop-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#12161f;margin-bottom:8px;transition:all .2s;border:1px solid #2a3140}
+.shop-item:last-child{margin-bottom:0}
+.shop-item:active{transform:scale(.98)}
+.shop-icon{font-size:32px;flex-shrink:0;width:44px;text-align:center}
+.shop-info{flex:1;min-width:0}
+.shop-name{font-size:14px;font-weight:600;color:#f1f5f9}
+.shop-desc{font-size:11px;color:#6b7a90;margin-top:2px}
+.shop-buy{background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1f2b;border:none;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:inherit;transition:all .2s;box-shadow:0 2px 10px rgba(251,191,36,.3)}
+.shop-buy:active{transform:scale(.95)}
+.shop-buy:disabled{opacity:.4;cursor:not-allowed}
 .leaderboard{background:#1a1f2b;border-radius:20px;padding:16px;border:1px solid #2a3140;box-shadow:0 4px 20px rgba(0,0,0,.45)}
 .leaderboard-title{font-size:15px;font-weight:700;color:#fbbf24;margin-bottom:12px;text-align:center;letter-spacing:.8px;text-transform:uppercase;text-shadow:0 0 18px rgba(251,191,36,.35)}
 .lb-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;margin-bottom:6px;background:#12161f;transition:all .3s;border:2px solid transparent}
@@ -99,8 +111,37 @@ body{background:#0b0e14;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 <div class="actions">
 <button class="btn btn-feed" id="btnFeed">🔥 Підкинути дров (+1 ⭐)</button>
 <button class="btn btn-rescue" id="btnRescue" disabled>❤️ Врятувати Вогник (1 🪙)</button>
-<button class="btn btn-buy" id="btnBuy">⭐ Купити монету за 5 зірок</button>
 </div>
+
+<!-- 🛒 МАГАЗИН -->
+<div class="shop">
+<div class="shop-title">🛒 Магазин монет</div>
+<div class="shop-item">
+<div class="shop-icon">🪙</div>
+<div class="shop-info">
+<div class="shop-name">1 монета</div>
+<div class="shop-desc">Стартовий пакет</div>
+</div>
+<button class="shop-buy" data-coins="1" data-price="5">5 ⭐</button>
+</div>
+<div class="shop-item">
+<div class="shop-icon">💰</div>
+<div class="shop-info">
+<div class="shop-name">10 монет</div>
+<div class="shop-desc">Вигідна ціна</div>
+</div>
+<button class="shop-buy" data-coins="10" data-price="50">50 ⭐</button>
+</div>
+<div class="shop-item">
+<div class="shop-icon">💎</div>
+<div class="shop-info">
+<div class="shop-name">50 монет</div>
+<div class="shop-desc">Найкраща ціна</div>
+</div>
+<button class="shop-buy" data-coins="50" data-price="200">200 ⭐</button>
+</div>
+</div>
+
 <div class="leaderboard">
 <div class="leaderboard-title">🏆 Топ-10 гравців</div>
 <div id="leaderboardList"><div class="lb-empty">Завантаження...</div></div>
@@ -114,7 +155,7 @@ body{background:#0b0e14;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, serverTimestamp, increment } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
 apiKey: "AIzaSyC53lY7Byyx0YWADr0BRlR-iWKIxF3SR-M",
@@ -146,22 +187,15 @@ userPhotoUrl = u.photo_url || "";
 const fullName = (userName + (userLastName ? " " + userLastName : "")).trim();
 
 // ============ КОНСТАНТИ ============
-const DAY_LIFETIME = 24 * 60 * 60 * 1000; // 24 години
-const COIN_REWARD_INTERVAL = 10;            // кожні 10 днів +1 монета
-const RESCUE_COST = 1;                       // ціна порятунку в монетах
-const STAR_COST = 5;                         // ціна монети в зірках
-const STAR_REWARD_PER_FEED = 1;              // +1 зірка за підкидання
+const DAY_LIFETIME = 24 * 60 * 60 * 1000;
+const COIN_REWARD_INTERVAL = 10;
+const RESCUE_COST = 1;
+const STAR_REWARD_PER_FEED = 1;
 
 // ============ СТАН ============
-let state = {
-    coins: 3,
-    stars: 50,
-    days: 0,
-    isAlive: true,
-    lastFed: Date.now(),
-    name: fullName
-};
+let state = { coins: 3, stars: 50, days: 0, isAlive: true, lastFed: Date.now(), name: fullName };
 let timerInterval = null, leaderboardUnsub = null, userDocUnsub = null, isProcessing = false;
+let pendingPurchase = null; // { coins, price }
 
 const $ = (id) => document.getElementById(id);
 const avatarBox = $("avatarBox"), avatarLetter = $("avatarLetter"), avatarStatus = $("avatarStatus");
@@ -169,7 +203,7 @@ const profileName = $("profileName"), profileId = $("profileId");
 const coinsValue = $("coinsValue"), starsValue = $("starsValue"), daysValue = $("daysValue");
 const flameCard = $("flameCard"), flameEmoji = $("flameEmoji"), flameStatus = $("flameStatus");
 const timerDisplay = $("timerDisplay"), timerLabel = $("timerLabel");
-const btnFeed = $("btnFeed"), btnRescue = $("btnRescue"), btnBuy = $("btnBuy");
+const btnFeed = $("btnFeed"), btnRescue = $("btnRescue");
 const leaderboardList = $("leaderboardList"), loadingScreen = $("loadingScreen"), toastEl = $("toast");
 
 function showToast(msg, d = 2200) {
@@ -208,10 +242,8 @@ function setAvatar(box, letterEl, name, photoUrl) {
     }
 }
 
-// Скільки мс залишилось до наступного підкидання
 function msUntilNextFeed() {
-    const elapsed = Date.now() - state.lastFed;
-    return DAY_LIFETIME - elapsed;
+    return DAY_LIFETIME - (Date.now() - state.lastFed);
 }
 
 function render() {
@@ -233,43 +265,31 @@ function render() {
         flameStatus.textContent = "Вогник згас!";
     }
 
-    // Логіка кнопки "Підкинути дров" — активна тільки якщо минуло 24 год
     const msLeft = msUntilNextFeed();
     const canFeed = state.isAlive && msLeft <= 0;
     btnFeed.disabled = !canFeed;
-
-    if (state.isAlive && msLeft > 0) {
-        // Кнопка заблокована до наступного дня
-        btnFeed.textContent = "🔥 Підкинути дров (незабаром)";
-    } else {
-        btnFeed.textContent = `🔥 Підкинути дров (+${STAR_REWARD_PER_FEED} ⭐)`;
-    }
+    btnFeed.textContent = (state.isAlive && msLeft > 0)
+        ? "🔥 Підкинути дров (незабаром)"
+        : `🔥 Підкинути дров (+${STAR_REWARD_PER_FEED} ⭐)`;
 
     btnRescue.disabled = state.isAlive || state.coins < RESCUE_COST;
-    btnBuy.disabled = state.stars < STAR_COST;
-
     updateTimer();
 }
 
 function updateTimer() {
-    // Якщо вогник згас — показуємо червоний статус
     if (!state.isAlive) {
         timerDisplay.textContent = "Вогник згас!";
         timerDisplay.className = "timer red";
         timerLabel.textContent = "Потрібен порятунок";
         return;
     }
-
     const msLeft = msUntilNextFeed();
-
-    // Якщо час минув, але гравець ще не натиснув — вогник от-от згасне
     if (msLeft <= 0) {
         timerDisplay.textContent = "Час підкинути дров!";
         timerDisplay.className = "timer orange";
         timerLabel.textContent = "Вогник чекає";
         return;
     }
-
     timerDisplay.textContent = formatTimerText(msLeft);
     timerDisplay.className = "timer green";
     timerLabel.textContent = "Наступне підкидання через";
@@ -279,11 +299,7 @@ async function initUser() {
     const userRef = doc(db, "players", userId);
     const snap = await getDoc(userRef);
     if (!snap.exists()) {
-        const np = {
-            coins: 3, stars: 50, days: 0, isAlive: true,
-            lastFed: Date.now(), name: fullName,
-            photoUrl: userPhotoUrl || "", createdAt: serverTimestamp()
-        };
+        const np = { coins: 3, stars: 50, days: 0, isAlive: true, lastFed: Date.now(), name: fullName, photoUrl: userPhotoUrl || "", createdAt: serverTimestamp() };
         await setDoc(userRef, np);
         state = { ...np };
     } else {
@@ -317,15 +333,9 @@ async function updateFirestore(fields) {
     catch (e) { console.error(e); showToast("Помилка збереження"); }
 }
 
-// Вогник гасне, якщо минуло > 48 год (24 год "життя" + 24 год "очікування")
-// Або простіше: якщо минуло > 24 год — можна тільки підкинути, і він продовжиться
-// Але якщо минуло > 48 год — вогник гасне назавжди, поки не врятують
 async function checkFlameStatus() {
     if (!state.isAlive) return;
-    const elapsed = Date.now() - state.lastFed;
-    // Якщо минуло БІЛЬШЕ ніж 24 год — вогник гасне
-    // (гравець має 24 год, щоб підкинути дров, інакше втрачає)
-    if (elapsed >= DAY_LIFETIME) {
+    if (Date.now() - state.lastFed >= DAY_LIFETIME) {
         state.isAlive = false;
         render();
         await updateFirestore({ isAlive: false });
@@ -336,38 +346,22 @@ async function checkFlameStatus() {
 async function onFeed() {
     if (isProcessing || !state.isAlive) return;
     const msLeft = msUntilNextFeed();
-    if (msLeft > 0) {
-        showToast("⏳ Наступне підкидання через " + formatTimerText(msLeft));
-        return;
-    }
+    if (msLeft > 0) { showToast("⏳ Наступне підкидання через " + formatTimerText(msLeft)); return; }
 
-    isProcessing = true;
-    btnFeed.disabled = true;
+    isProcessing = true; btnFeed.disabled = true;
     try {
         const newDays = state.days + 1;
         const now = Date.now();
         const newStars = state.stars + STAR_REWARD_PER_FEED;
         let newCoins = state.coins;
         let coinEarned = false;
-        if (newDays % COIN_REWARD_INTERVAL === 0) {
-            newCoins++;
-            coinEarned = true;
-        }
+        if (newDays % COIN_REWARD_INTERVAL === 0) { newCoins++; coinEarned = true; }
 
-        state.days = newDays;
-        state.stars = newStars;
-        state.coins = newCoins;
-        state.lastFed = now;
-        state.isAlive = true;
+        state.days = newDays; state.stars = newStars; state.coins = newCoins;
+        state.lastFed = now; state.isAlive = true;
         render();
 
-        await updateFirestore({
-            days: newDays,
-            stars: newStars,
-            coins: newCoins,
-            lastFed: now,
-            isAlive: true
-        });
+        await updateFirestore({ days: newDays, stars: newStars, coins: newCoins, lastFed: now, isAlive: true });
 
         let msg = `🔥 День ${newDays}! +${STAR_REWARD_PER_FEED} ⭐`;
         if (coinEarned) msg += ` і +1 🪙`;
@@ -390,20 +384,58 @@ async function onRescue() {
     finally { isProcessing = false; render(); }
 }
 
-async function onBuy() {
-    if (isProcessing || state.stars < STAR_COST) return;
-    isProcessing = true; btnBuy.disabled = true;
-    try {
-        const newStars = state.stars - STAR_COST;
-        const newCoins = state.coins + 1;
-        state.stars = newStars; state.coins = newCoins;
+// ============================================================
+//  💳 КУПІВЛЯ МОНЕТ ЧЕРЕЗ TELEGRAM STARS (Invoice)
+// ============================================================
+// ВАЖЛИВО: щоб це працювало, потрібно:
+// 1) Створити бота в @BotFather
+// 2) Увімкнути Payments: /mybots → ваш бот → Payments → обрати провайдера
+// 3) Або використати Telegram Stars (XTR currency) — платежі без провайдера
+// ============================================================
+
+async function buyCoins(coinsAmount, starPrice) {
+    if (!tg || !tg.openInvoice) {
+        // Резервний режим для браузера — просто нараховуємо "безкоштовно" (для тесту)
+        showToast(`ℹ️ У браузері оплата недоступна. Нараховано ${coinsAmount} 🪙 (тест)`);
+        state.coins += coinsAmount;
         render();
-        await updateFirestore({ stars: newStars, coins: newCoins });
-        showToast("🪙 Монету придбано за 5 ⭐!");
-    } catch (e) { console.error(e); }
-    finally { isProcessing = false; render(); }
+        await updateFirestore({ coins: increment(coinsAmount) });
+        return;
+    }
+
+    // Зберігаємо, що саме купуємо — після успішної оплати нарахуємо
+    pendingPurchase = { coins: coinsAmount, price: starPrice };
+
+    // Формуємо invoice-лінк. У реальному проекті це має робити ваш сервер через Bot API
+    // Для Telegram Stars використовується currency = "XTR"
+    const invoicePayload = `buy_${coinsAmount}coins_for_${starPrice}stars_${userId}_${Date.now()}`;
+
+    // ПРИКЛАД: якщо у вас є серверний endpoint, який створює інвойс:
+    // const res = await fetch(`https://your-server.com/create-invoice`, {
+    //     method: "POST",
+    //     body: JSON.stringify({ userId, coins: coinsAmount, price: starPrice })
+    // });
+    // const { invoiceLink } = await res.json();
+    //
+    // tg.openInvoice(invoiceLink, (status) => { ... });
+
+    // Для прикладу показуємо повідомлення — тут потрібен ваш сервер
+    showToast(`💳 Для покупки ${coinsAmount} 🪙 за ${starPrice} ⭐ потрібен серверний endpoint`);
+    console.log("Потрібен invoice link від сервера. Payload:", invoicePayload);
 }
 
+// Обробка кнопок магазину
+document.querySelectorAll(".shop-buy").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const coins = parseInt(btn.dataset.coins, 10);
+        const price = parseInt(btn.dataset.price, 10);
+        buyCoins(coins, price);
+    });
+});
+
+// ============================================================
+//  ЛІДЕРБОРД
+// ============================================================
 function initLeaderboard() {
     if (leaderboardUnsub) leaderboardUnsub();
     const q = query(collection(db, "players"), orderBy("days", "desc"), limit(10));
@@ -411,11 +443,7 @@ function initLeaderboard() {
         const players = [];
         snap.forEach((d) => {
             const data = d.data();
-            players.push({
-                id: d.id, name: data.name || "Гравець",
-                days: data.days || 0, isAlive: data.isAlive,
-                photoUrl: data.photoUrl || ""
-            });
+            players.push({ id: d.id, name: data.name || "Гравець", days: data.days || 0, isAlive: data.isAlive, photoUrl: data.photoUrl || "" });
         });
         renderLeaderboard(players);
     }, (err) => {
@@ -427,10 +455,7 @@ function initLeaderboard() {
 function escapeHtml(str) { const d = document.createElement("div"); d.textContent = str; return d.innerHTML; }
 
 function renderLeaderboard(players) {
-    if (!players.length) {
-        leaderboardList.innerHTML = '<div class="lb-empty">Поки що немає гравців</div>';
-        return;
-    }
+    if (!players.length) { leaderboardList.innerHTML = '<div class="lb-empty">Поки що немає гравців</div>'; return; }
     let html = "";
     players.forEach((p, i) => {
         const rank = i + 1;
@@ -456,10 +481,7 @@ function renderLeaderboard(players) {
 
 function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
-    timerInterval = setInterval(async () => {
-        updateTimer();
-        await checkFlameStatus();
-    }, 1000);
+    timerInterval = setInterval(async () => { updateTimer(); await checkFlameStatus(); }, 1000);
 }
 
 async function init() {
@@ -470,7 +492,6 @@ async function init() {
         startTimer();
         btnFeed.addEventListener("click", onFeed);
         btnRescue.addEventListener("click", onRescue);
-        btnBuy.addEventListener("click", onBuy);
         setTimeout(() => loadingScreen.classList.add("hidden"), 400);
         render();
     } catch (e) {
