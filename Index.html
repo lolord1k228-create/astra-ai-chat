@@ -46,19 +46,70 @@
             border: 1px solid #2a3140;
         }
 
+        .avatar-wrap {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+        }
+
         .avatar {
-            width: 52px;
-            height: 52px;
+            width: 56px;
+            height: 56px;
             border-radius: 50%;
             background: linear-gradient(135deg, #f59e0b, #ea580c);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
             color: #fff;
-            flex-shrink: 0;
-            box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.5);
+            overflow: hidden;
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .avatar-letter {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 700;
+            color: #fff;
+            z-index: 1;
+        }
+
+        .avatar img + .avatar-letter {
+            display: none;
+        }
+
+        .avatar-status {
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #4ade80;
+            border: 3px solid #1a1f2b;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
+            z-index: 2;
+            transition: background 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .avatar-status.offline {
+            background: #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
         }
 
         .profile-info {
@@ -328,7 +379,6 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #f59e0b, #ea580c);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -336,6 +386,14 @@
             font-weight: 700;
             color: #fff;
             flex-shrink: 0;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .lb-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .lb-name {
@@ -430,16 +488,19 @@
 <body>
 
 <div id="app">
-    <!-- Профіль -->
     <div class="profile-card">
-        <div class="avatar" id="avatarLetter">?</div>
+        <div class="avatar-wrap">
+            <div class="avatar" id="avatarBox">
+                <span class="avatar-letter" id="avatarLetter">?</span>
+            </div>
+            <div class="avatar-status" id="avatarStatus"></div>
+        </div>
         <div class="profile-info">
             <div class="profile-name" id="profileName">Завантаження...</div>
             <div class="profile-id" id="profileId">ID: ---</div>
         </div>
     </div>
 
-    <!-- Ресурси -->
     <div class="resources">
         <div class="resource-item coins">
             <span class="resource-emoji">🪙</span>
@@ -458,7 +519,6 @@
         </div>
     </div>
 
-    <!-- Вогник -->
     <div class="flame-card alive" id="flameCard">
         <span class="flame-emoji" id="flameEmoji">🔥</span>
         <div class="flame-status" id="flameStatus">Вогник горить!</div>
@@ -466,14 +526,12 @@
         <div class="timer-label" id="timerLabel">Згасне через</div>
     </div>
 
-    <!-- Дії -->
     <div class="actions">
         <button class="btn btn-feed" id="btnFeed">🔥 Підкинути дров (+1 день)</button>
         <button class="btn btn-rescue" id="btnRescue" disabled>❤️ Врятувати Вогник (1 🪙)</button>
         <button class="btn btn-buy" id="btnBuy">⭐ Купити монету за 5 зірок</button>
     </div>
 
-    <!-- Лідерборд -->
     <div class="leaderboard">
         <div class="leaderboard-title">🏆 Топ-10 гравців</div>
         <div id="leaderboardList">
@@ -482,19 +540,14 @@
     </div>
 </div>
 
-<!-- Загрузка -->
 <div class="loading" id="loadingScreen">
     <div class="loading-spinner"></div>
     <div class="loading-text">Завантаження гри...</div>
 </div>
 
-<!-- Тост -->
 <div class="toast" id="toast"></div>
 
 <script type="module">
-    // ============================================================
-    //  FIREBASE v10 (модульний SDK)
-    // ============================================================
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
         getFirestore,
@@ -534,12 +587,14 @@
     let userId = "test_user_123";
     let userName = "Тестовий Гравець";
     let userLastName = "";
+    let userPhotoUrl = "";
 
     if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
         const u = tg.initDataUnsafe.user;
         userId = String(u.id);
         userName = u.first_name || "Гравець";
         userLastName = u.last_name || "";
+        userPhotoUrl = u.photo_url || "";
     }
 
     const fullName = (userName + (userLastName ? " " + userLastName : "")).trim();
@@ -547,14 +602,13 @@
     // ============================================================
     //  КОНСТАНТИ ГРИ
     // ============================================================
-    // Для тесту змініть на 1 * 60 * 1000 (1 хвилина)
-    const LIFETIME = 24 * 60 * 60 * 1000; // 24 години в мс
-    const COIN_REWARD_INTERVAL = 10;       // кожні 10 днів +1 монета
-    const RESCUE_COST = 1;                 // вартість порятунку в монетах
-    const STAR_COST = 5;                   // вартість монети в зірках
+    const LIFETIME = 24 * 60 * 60 * 1000; // 24 години
+    const COIN_REWARD_INTERVAL = 10;
+    const RESCUE_COST = 1;
+    const STAR_COST = 5;
 
     // ============================================================
-    //  СТАН ГРИ
+    //  СТАН
     // ============================================================
     let state = {
         coins: 3,
@@ -571,10 +625,12 @@
     let isProcessing = false;
 
     // ============================================================
-    //  DOM-ЕЛЕМЕНТИ
+    //  DOM
     // ============================================================
     const $ = (id) => document.getElementById(id);
+    const avatarBox = $("avatarBox");
     const avatarLetter = $("avatarLetter");
+    const avatarStatus = $("avatarStatus");
     const profileName = $("profileName");
     const profileId = $("profileId");
     const coinsValue = $("coinsValue");
@@ -604,15 +660,6 @@
         }, duration);
     }
 
-    function formatTime(ms) {
-        if (ms <= 0) return "00:00:00";
-        const totalSec = Math.floor(ms / 1000);
-        const h = Math.floor(totalSec / 3600);
-        const m = Math.floor((totalSec % 3600) / 60);
-        const s = totalSec % 60;
-        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-    }
-
     function formatTimerText(ms) {
         if (ms <= 0) return "00:00:00";
         const totalSec = Math.floor(ms / 1000);
@@ -622,21 +669,64 @@
         return `${h}г ${String(m).padStart(2, "0")}хв ${String(s).padStart(2, "0")}с`;
     }
 
+    // Генерація кольорового градієнта на основі рядка
+    function stringToGradient(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const h1 = Math.abs(hash) % 360;
+        const h2 = (h1 + 40) % 360;
+        return `linear-gradient(135deg, hsl(${h1}, 75%, 55%), hsl(${h2}, 80%, 45%))`;
+    }
+
+    // Встановлення аватарки: фото або літера
+    function setAvatar(element, imgElement, letterElement, name, photoUrl) {
+        const letter = (name || "?").charAt(0).toUpperCase();
+        if (photoUrl) {
+            imgElement.src = photoUrl;
+            imgElement.alt = name;
+            imgElement.style.display = "block";
+            if (letterElement) letterElement.style.display = "none";
+            imgElement.onerror = () => {
+                imgElement.style.display = "none";
+                if (letterElement) {
+                    letterElement.style.display = "flex";
+                    letterElement.textContent = letter;
+                }
+                element.style.background = stringToGradient(name || "?");
+            };
+        } else {
+            imgElement.style.display = "none";
+            if (letterElement) {
+                letterElement.style.display = "flex";
+                letterElement.textContent = letter;
+            }
+            element.style.background = stringToGradient(name || "?");
+        }
+    }
+
     // ============================================================
     //  ВІДОБРАЖЕННЯ
     // ============================================================
     function render() {
-        // Профіль
-        avatarLetter.textContent = (state.name || "?").charAt(0).toUpperCase();
+        // Аватарка
+        setAvatar(avatarBox, avatarBox.querySelector("img"), avatarLetter, state.name, userPhotoUrl);
+
+        // Статус онлайн/офлайн
+        if (state.isAlive) {
+            avatarStatus.classList.remove("offline");
+        } else {
+            avatarStatus.classList.add("offline");
+        }
+
         profileName.textContent = state.name || "Гравець";
         profileId.textContent = "ID: " + userId;
 
-        // Ресурси
         coinsValue.textContent = state.coins;
         starsValue.textContent = state.stars;
         daysValue.textContent = state.days;
 
-        // Вогник
         if (state.isAlive) {
             flameCard.className = "flame-card alive";
             flameEmoji.textContent = "🔥";
@@ -647,12 +737,10 @@
             flameStatus.textContent = "Вогник згас!";
         }
 
-        // Кнопки
         btnFeed.disabled = !state.isAlive;
         btnRescue.disabled = state.isAlive || state.coins < RESCUE_COST;
         btnBuy.disabled = state.stars < STAR_COST;
 
-        // Таймер
         updateTimer();
     }
 
@@ -680,14 +768,13 @@
     }
 
     // ============================================================
-    //  FIREBASE: СИНХРОНІЗАЦІЯ КОРИСТУВАЧА
+    //  FIREBASE
     // ============================================================
     async function initUser() {
         const userRef = doc(db, "players", userId);
         const snap = await getDoc(userRef);
 
         if (!snap.exists()) {
-            // Створюємо нового гравця
             const newPlayer = {
                 coins: 3,
                 stars: 50,
@@ -695,10 +782,11 @@
                 isAlive: true,
                 lastFed: Date.now(),
                 name: fullName,
+                photoUrl: userPhotoUrl || "",
                 createdAt: serverTimestamp()
             };
             await setDoc(userRef, newPlayer);
-            state = { ...newPlayer, lastFed: newPlayer.lastFed };
+            state = { ...newPlayer };
         } else {
             const data = snap.data();
             state = {
@@ -709,9 +797,14 @@
                 lastFed: data.lastFed ?? Date.now(),
                 name: data.name || fullName
             };
+            // Оновимо photoUrl у БД, якщо є нове
+            if (userPhotoUrl && data.photoUrl !== userPhotoUrl) {
+                try {
+                    await updateDoc(userRef, { photoUrl: userPhotoUrl });
+                } catch (e) { /* ignore */ }
+            }
         }
 
-        // Підписка на зміни документа користувача
         if (userDocUnsub) userDocUnsub();
         userDocUnsub = onSnapshot(userRef, (docSnap) => {
             if (!docSnap.exists()) return;
@@ -728,9 +821,6 @@
         render();
     }
 
-    // ============================================================
-    //  ОНОВЛЕННЯ FIRESTORE
-    // ============================================================
     async function updateFirestore(fields) {
         const userRef = doc(db, "players", userId);
         try {
@@ -742,14 +832,12 @@
     }
 
     // ============================================================
-    //  ПЕРЕВІРКА СТАНУ ВОГНИКА (ТАЙМЕР)
+    //  ПЕРЕВІРКА ТАЙМЕРА
     // ============================================================
     async function checkFlameStatus() {
         if (!state.isAlive) return;
-
         const elapsed = Date.now() - state.lastFed;
         if (elapsed >= LIFETIME) {
-            // Огонек згас
             state.isAlive = false;
             render();
             await updateFirestore({ isAlive: false });
@@ -758,24 +846,16 @@
     }
 
     // ============================================================
-    //  ДІЇ ГРАВЦЯ
+    //  ДІЇ
     // ============================================================
-
-    // --- Підкинути дров ---
     async function onFeed() {
-        if (isProcessing) return;
-        if (!state.isAlive) {
-            showToast("Вогник згас! Спочатку врятуйте його.");
-            return;
-        }
-
+        if (isProcessing || !state.isAlive) return;
         isProcessing = true;
         btnFeed.disabled = true;
 
         try {
             const newDays = state.days + 1;
             const now = Date.now();
-
             let newCoins = state.coins;
             let coinEarned = false;
             if (newDays % COIN_REWARD_INTERVAL === 0) {
@@ -783,14 +863,12 @@
                 coinEarned = true;
             }
 
-            // Оновлюємо локальний стан
             state.days = newDays;
             state.coins = newCoins;
             state.lastFed = now;
             state.isAlive = true;
             render();
 
-            // Записуємо в Firestore
             await updateFirestore({
                 days: newDays,
                 coins: newCoins,
@@ -798,32 +876,17 @@
                 isAlive: true
             });
 
-            if (coinEarned) {
-                showToast("🎉 +1 монета за " + newDays + " днів!");
-            } else {
-                showToast("🔥 Дров підкинуто! День " + newDays);
-            }
+            showToast(coinEarned ? `🎉 +1 монета за ${newDays} днів!` : `🔥 Дров підкинуто! День ${newDays}`);
         } catch (e) {
             console.error(e);
-            showToast("Помилка. Спробуйте ще раз.");
         } finally {
             isProcessing = false;
             render();
         }
     }
 
-    // --- Врятувати вогник ---
     async function onRescue() {
-        if (isProcessing) return;
-        if (state.isAlive) {
-            showToast("Вогник ще горить!");
-            return;
-        }
-        if (state.coins < RESCUE_COST) {
-            showToast("Недостатньо монет! Потрібна 1 🪙");
-            return;
-        }
-
+        if (isProcessing || state.isAlive || state.coins < RESCUE_COST) return;
         isProcessing = true;
         btnRescue.disabled = true;
 
@@ -842,24 +905,17 @@
                 lastFed: now
             });
 
-            showToast("❤️ Вогник врятовано! Полум'я знову горить!");
+            showToast("❤️ Вогник врятовано!");
         } catch (e) {
             console.error(e);
-            showToast("Помилка. Спробуйте ще раз.");
         } finally {
             isProcessing = false;
             render();
         }
     }
 
-    // --- Купити монету за зірки ---
     async function onBuy() {
-        if (isProcessing) return;
-        if (state.stars < STAR_COST) {
-            showToast("Недостатньо зірок! Потрібно 5 ⭐");
-            return;
-        }
-
+        if (isProcessing || state.stars < STAR_COST) return;
         isProcessing = true;
         btnBuy.disabled = true;
 
@@ -871,15 +927,10 @@
             state.coins = newCoins;
             render();
 
-            await updateFirestore({
-                stars: newStars,
-                coins: newCoins
-            });
-
-            showToast("🪙 Монету придбано за 5 ⭐!");
+            await updateFirestore({ stars: newStars, coins: newCoins });
+            showToast("🪙 Монету придбано!");
         } catch (e) {
             console.error(e);
-            showToast("Помилка. Спробуйте ще раз.");
         } finally {
             isProcessing = false;
             render();
@@ -887,16 +938,12 @@
     }
 
     // ============================================================
-    //  ЛІДЕРБОРД (РЕАЛЬНИЙ ЧАС)
+    //  ЛІДЕРБОРД
     // ============================================================
     function initLeaderboard() {
         if (leaderboardUnsub) leaderboardUnsub();
 
-        const q = query(
-            collection(db, "players"),
-            orderBy("days", "desc"),
-            limit(10)
-        );
+        const q = query(collection(db, "players"), orderBy("days", "desc"), limit(10));
 
         leaderboardUnsub = onSnapshot(q, (snapshot) => {
             const players = [];
@@ -906,14 +953,14 @@
                     id: docSnap.id,
                     name: data.name || "Гравець",
                     days: data.days || 0,
-                    isAlive: data.isAlive
+                    isAlive: data.isAlive,
+                    photoUrl: data.photoUrl || ""
                 });
             });
-
             renderLeaderboard(players);
         }, (error) => {
             console.error("Помилка лідерборду:", error);
-            leaderboardList.innerHTML = '<div class="lb-empty">Не вдалося завантажити лідерів</div>';
+            leaderboardList.innerHTML = '<div class="lb-empty">Не вдалося завантажити</div>';
         });
     }
 
@@ -934,11 +981,20 @@
             const isCurrent = p.id === userId;
             const rowClass = isCurrent ? "lb-row current-user" : "lb-row";
             const flameIcon = p.isAlive ? "🔥" : "💨";
+            const letter = (p.name || "?").charAt(0).toUpperCase();
+            const gradient = stringToGradient(p.name || "?");
+
+            const avatarContent = p.photoUrl
+                ? `<img src="${p.photoUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';this.nextElementSibling.textContent='${letter}';this.parentElement.style.background='${gradient}';">`
+                : "";
 
             html += `
                 <div class="${rowClass}">
                     <div class="lb-rank ${rankClass}">${rank}</div>
-                    <div class="lb-avatar">${(p.name || "?").charAt(0).toUpperCase()}</div>
+                    <div class="lb-avatar" style="background: ${gradient}">
+                        ${avatarContent}
+                        <span style="display:${p.photoUrl ? "none" : "flex"};width:100%;height:100%;align-items:center;justify-content:center;">${letter}</span>
+                    </div>
                     <div class="lb-name">${escapeHtml(p.name)} ${flameIcon}</div>
                     <div class="lb-days">${p.days} дн</div>
                 </div>
@@ -955,7 +1011,7 @@
     }
 
     // ============================================================
-    //  ТАЙМЕР (ЩОСЕКУНДИ)
+    //  ТАЙМЕР
     // ============================================================
     function startTimer() {
         if (timerInterval) clearInterval(timerInterval);
@@ -970,24 +1026,15 @@
     // ============================================================
     async function init() {
         try {
-            // Ініціалізація користувача
             await initUser();
-
-            // Перевірка стану вогника при завантаженні
             await checkFlameStatus();
-
-            // Лідерборд
             initLeaderboard();
-
-            // Таймер
             startTimer();
 
-            // Обробники кнопок
             btnFeed.addEventListener("click", onFeed);
             btnRescue.addEventListener("click", onRescue);
             btnBuy.addEventListener("click", onBuy);
 
-            // Ховаємо екран завантаження
             setTimeout(() => {
                 loadingScreen.classList.add("hidden");
             }, 400);
@@ -1000,16 +1047,13 @@
         }
     }
 
-    // Запуск
     init();
 
-    // Очищення при закритті
     window.addEventListener("beforeunload", () => {
         if (timerInterval) clearInterval(timerInterval);
         if (leaderboardUnsub) leaderboardUnsub();
         if (userDocUnsub) userDocUnsub();
     });
-
 </script>
 
 </body>
