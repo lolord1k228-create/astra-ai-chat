@@ -1,1060 +1,379 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Вогник & Монети</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-
-        body {
-            background: #0b0e14;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            color: #e8edf5;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 12px;
-        }
-
-        #app {
-            max-width: 480px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            padding-bottom: 30px;
-        }
-
-        /* ===== Картка профілю ===== */
-        .profile-card {
-            background: #1a1f2b;
-            border-radius: 20px;
-            padding: 16px 18px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-            border: 1px solid #2a3140;
-        }
-
-        .avatar-wrap {
-            position: relative;
-            width: 56px;
-            height: 56px;
-            flex-shrink: 0;
-        }
-
-        .avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f59e0b, #ea580c);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            font-weight: 700;
-            color: #fff;
-            box-shadow: 0 0 16px rgba(245, 158, 11, 0.5);
-            overflow: hidden;
-            position: relative;
-            border: 2px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .avatar-letter {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 26px;
-            font-weight: 700;
-            color: #fff;
-            z-index: 1;
-        }
-
-        .avatar img + .avatar-letter {
-            display: none;
-        }
-
-        .avatar-status {
-            position: absolute;
-            bottom: -1px;
-            right: -1px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #4ade80;
-            border: 3px solid #1a1f2b;
-            box-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
-            z-index: 2;
-            transition: background 0.4s ease, box-shadow 0.4s ease;
-        }
-
-        .avatar-status.offline {
-            background: #ef4444;
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.7);
-        }
-
-        .profile-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .profile-name {
-            font-size: 17px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #f1f5f9;
-        }
-
-        .profile-id {
-            font-size: 12px;
-            color: #6b7a90;
-            margin-top: 2px;
-        }
-
-        /* ===== Ресурси ===== */
-        .resources {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-        }
-
-        .resource-item {
-            background: #1a1f2b;
-            border-radius: 16px;
-            padding: 12px 6px;
-            text-align: center;
-            border: 1px solid #2a3140;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-        }
-
-        .resource-emoji {
-            font-size: 24px;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .resource-value {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .resource-label {
-            font-size: 10px;
-            color: #6b7a90;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            margin-top: 2px;
-        }
-
-        .coins .resource-value { color: #fbbf24; text-shadow: 0 0 12px rgba(251, 191, 36, 0.4); }
-        .stars .resource-value { color: #f59e0b; text-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
-        .days .resource-value { color: #38bdf8; text-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
-
-        /* ===== Картка вогника ===== */
-        .flame-card {
-            background: #1a1f2b;
-            border-radius: 24px;
-            padding: 28px 20px 22px;
-            text-align: center;
-            border: 1px solid #2a3140;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-            transition: all 0.5s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .flame-card.alive {
-            border-color: rgba(245, 158, 11, 0.35);
-            box-shadow: 0 0 35px rgba(245, 158, 11, 0.15), 0 4px 24px rgba(0, 0, 0, 0.5);
-        }
-
-        .flame-card.dead {
-            background: #15181f;
-            border-color: #2a3140;
-            filter: grayscale(0.7);
-        }
-
-        .flame-emoji {
-            font-size: 80px;
-            line-height: 1;
-            display: block;
-            margin-bottom: 14px;
-            transition: all 0.5s ease;
-        }
-
-        .flame-card.alive .flame-emoji {
-            animation: pulseFlame 1.6s ease-in-out infinite;
-            filter: drop-shadow(0 0 28px rgba(245, 158, 11, 0.75));
-        }
-
-        .flame-card.dead .flame-emoji {
-            opacity: 0.45;
-            filter: grayscale(1);
-            animation: none;
-        }
-
-        @keyframes pulseFlame {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 22px rgba(245, 158, 11, 0.6)); }
-            50% { transform: scale(1.1); filter: drop-shadow(0 0 42px rgba(245, 158, 11, 0.95)); }
-        }
-
-        .flame-status {
-            font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 6px;
-        }
-
-        .flame-card.alive .flame-status { color: #4ade80; }
-        .flame-card.dead .flame-status { color: #ef4444; }
-
-        /* ===== Таймер ===== */
-        .timer {
-            font-size: 17px;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            transition: color 0.3s;
-        }
-
-        .timer.green {
-            color: #4ade80;
-            text-shadow: 0 0 14px rgba(74, 222, 128, 0.45);
-        }
-
-        .timer.red {
-            color: #ef4444;
-            text-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
-            animation: blinkRed 1s ease-in-out infinite;
-        }
-
-        @keyframes blinkRed {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .timer-label {
-            font-size: 11px;
-            color: #6b7a90;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        /* ===== Кнопки ===== */
-        .btn {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: inherit;
-            letter-spacing: 0.3px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn:active:not(:disabled) {
-            transform: scale(0.97);
-        }
-
-        .btn:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-            filter: grayscale(0.6);
-        }
-
-        .btn-feed {
-            background: linear-gradient(135deg, #f59e0b, #ea580c);
-            color: #fff;
-            box-shadow: 0 4px 22px rgba(245, 158, 11, 0.4);
-        }
-
-        .btn-feed:active:not(:disabled) {
-            box-shadow: 0 2px 12px rgba(245, 158, 11, 0.6);
-        }
-
-        .btn-rescue {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
-            color: #fff;
-            box-shadow: 0 4px 22px rgba(239, 68, 68, 0.4);
-        }
-
-        .btn-rescue:active:not(:disabled) {
-            box-shadow: 0 2px 12px rgba(239, 68, 68, 0.6);
-        }
-
-        .btn-buy {
-            background: linear-gradient(135deg, #fbbf24, #d97706);
-            color: #1a1f2b;
-            box-shadow: 0 4px 22px rgba(251, 191, 36, 0.35);
-        }
-
-        .btn-buy:active:not(:disabled) {
-            box-shadow: 0 2px 12px rgba(251, 191, 36, 0.55);
-        }
-
-        .actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        /* ===== Лідерборд ===== */
-        .leaderboard {
-            background: #1a1f2b;
-            border-radius: 20px;
-            padding: 16px;
-            border: 1px solid #2a3140;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
-        }
-
-        .leaderboard-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #fbbf24;
-            margin-bottom: 12px;
-            text-align: center;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            text-shadow: 0 0 18px rgba(251, 191, 36, 0.35);
-        }
-
-        .lb-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 9px 12px;
-            border-radius: 12px;
-            margin-bottom: 6px;
-            background: #12161f;
-            transition: all 0.3s ease;
-            border: 2px solid transparent;
-        }
-
-        .lb-row:last-child { margin-bottom: 0; }
-
-        .lb-row.current-user {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.12);
-            box-shadow: 0 0 16px rgba(59, 130, 246, 0.25);
-        }
-
-        .lb-rank {
-            font-size: 14px;
-            font-weight: 700;
-            width: 26px;
-            text-align: center;
-            flex-shrink: 0;
-        }
-
-        .lb-rank.gold { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.6); }
-        .lb-rank.silver { color: #cbd5e1; text-shadow: 0 0 10px rgba(203, 213, 225, 0.5); }
-        .lb-rank.bronze { color: #d97706; text-shadow: 0 0 10px rgba(217, 119, 6, 0.5); }
-
-        .lb-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            font-weight: 700;
-            color: #fff;
-            flex-shrink: 0;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .lb-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .lb-name {
-            flex: 1;
-            font-size: 13px;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #e8edf5;
-        }
-
-        .lb-days {
-            font-size: 14px;
-            font-weight: 700;
-            color: #38bdf8;
-            flex-shrink: 0;
-            text-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
-        }
-
-        .lb-empty {
-            text-align: center;
-            color: #6b7a90;
-            font-size: 13px;
-            padding: 16px 0;
-        }
-
-        /* ===== Загрузка ===== */
-        .loading {
-            position: fixed;
-            inset: 0;
-            background: #0b0e14;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            z-index: 999;
-            transition: opacity 0.5s ease;
-        }
-
-        .loading.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loading-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #2a3140;
-            border-top-color: #f59e0b;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 14px;
-            color: #6b7a90;
-        }
-
-        /* ===== Тост ===== */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #1a1f2b;
-            border: 1px solid #2a3140;
-            border-radius: 14px;
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #e8edf5;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-            z-index: 1000;
-            transition: transform 0.35s ease, opacity 0.35s ease;
-            opacity: 0;
-            max-width: 90%;
-            text-align: center;
-        }
-
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Вогник & Монети</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+body{background:#0b0e14;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#e8edf5;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:12px}
+#app{max-width:480px;width:100%;display:flex;flex-direction:column;gap:14px;padding-bottom:30px}
+.profile-card{background:#1a1f2b;border-radius:20px;padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 20px rgba(0,0,0,.5);border:1px solid #2a3140}
+.avatar-wrap{position:relative;width:56px;height:56px;flex-shrink:0}
+.avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#f59e0b,#ea580c);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;box-shadow:0 0 16px rgba(245,158,11,.5);overflow:hidden;position:relative;border:2px solid rgba(255,255,255,.08)}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar-letter{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;z-index:1}
+.avatar-status{position:absolute;bottom:-1px;right:-1px;width:16px;height:16px;border-radius:50%;background:#4ade80;border:3px solid #1a1f2b;box-shadow:0 0 10px rgba(74,222,128,.7);z-index:2;transition:all .4s}
+.avatar-status.offline{background:#ef4444;box-shadow:0 0 10px rgba(239,68,68,.7)}
+.profile-info{flex:1;min-width:0}
+.profile-name{font-size:17px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#f1f5f9}
+.profile-id{font-size:12px;color:#6b7a90;margin-top:2px}
+.resources{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.resource-item{background:#1a1f2b;border-radius:16px;padding:12px 6px;text-align:center;border:1px solid #2a3140;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.resource-emoji{font-size:24px;display:block;margin-bottom:4px}
+.resource-value{font-size:20px;font-weight:700}
+.resource-label{font-size:10px;color:#6b7a90;text-transform:uppercase;letter-spacing:.6px;margin-top:2px}
+.coins .resource-value{color:#fbbf24;text-shadow:0 0 12px rgba(251,191,36,.4)}
+.stars .resource-value{color:#f59e0b;text-shadow:0 0 12px rgba(245,158,11,.4)}
+.days .resource-value{color:#38bdf8;text-shadow:0 0 12px rgba(56,189,248,.4)}
+.flame-card{background:#1a1f2b;border-radius:24px;padding:28px 20px 22px;text-align:center;border:1px solid #2a3140;box-shadow:0 4px 24px rgba(0,0,0,.5);transition:all .5s;position:relative;overflow:hidden}
+.flame-card.alive{border-color:rgba(245,158,11,.35);box-shadow:0 0 35px rgba(245,158,11,.15),0 4px 24px rgba(0,0,0,.5)}
+.flame-card.dead{background:#15181f;border-color:#2a3140;filter:grayscale(.7)}
+.flame-emoji{font-size:80px;line-height:1;display:block;margin-bottom:14px;transition:all .5s}
+.flame-card.alive .flame-emoji{animation:pulseFlame 1.6s ease-in-out infinite;filter:drop-shadow(0 0 28px rgba(245,158,11,.75))}
+.flame-card.dead .flame-emoji{opacity:.45;filter:grayscale(1);animation:none}
+@keyframes pulseFlame{0%,100%{transform:scale(1);filter:drop-shadow(0 0 22px rgba(245,158,11,.6))}50%{transform:scale(1.1);filter:drop-shadow(0 0 42px rgba(245,158,11,.95))}}
+.flame-status{font-size:15px;font-weight:600;margin-bottom:6px}
+.flame-card.alive .flame-status{color:#4ade80}
+.flame-card.dead .flame-status{color:#ef4444}
+.timer{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.5px;margin-bottom:6px;transition:color .3s}
+.timer.green{color:#4ade80;text-shadow:0 0 14px rgba(74,222,128,.45)}
+.timer.red{color:#ef4444;text-shadow:0 0 14px rgba(239,68,68,.45);animation:blinkRed 1s ease-in-out infinite}
+@keyframes blinkRed{0%,100%{opacity:1}50%{opacity:.5}}
+.timer-label{font-size:11px;color:#6b7a90;text-transform:uppercase;letter-spacing:.8px}
+.btn{width:100%;padding:16px;border:none;border-radius:16px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;letter-spacing:.3px;position:relative;overflow:hidden}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{opacity:.35;cursor:not-allowed;filter:grayscale(.6)}
+.btn-feed{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;box-shadow:0 4px 22px rgba(245,158,11,.4)}
+.btn-rescue{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;box-shadow:0 4px 22px rgba(239,68,68,.4)}
+.btn-buy{background:linear-gradient(135deg,#fbbf24,#d97706);color:#1a1f2b;box-shadow:0 4px 22px rgba(251,191,36,.35)}
+.actions{display:flex;flex-direction:column;gap:10px}
+.leaderboard{background:#1a1f2b;border-radius:20px;padding:16px;border:1px solid #2a3140;box-shadow:0 4px 20px rgba(0,0,0,.45)}
+.leaderboard-title{font-size:15px;font-weight:700;color:#fbbf24;margin-bottom:12px;text-align:center;letter-spacing:.8px;text-transform:uppercase;text-shadow:0 0 18px rgba(251,191,36,.35)}
+.lb-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;margin-bottom:6px;background:#12161f;transition:all .3s;border:2px solid transparent}
+.lb-row:last-child{margin-bottom:0}
+.lb-row.current-user{border-color:#3b82f6;background:rgba(59,130,246,.12);box-shadow:0 0 16px rgba(59,130,246,.25)}
+.lb-rank{font-size:14px;font-weight:700;width:26px;text-align:center;flex-shrink:0}
+.lb-rank.gold{color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,.6)}
+.lb-rank.silver{color:#cbd5e1;text-shadow:0 0 10px rgba(203,213,225,.5)}
+.lb-rank.bronze{color:#d97706;text-shadow:0 0 10px rgba(217,119,6,.5)}
+.lb-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.lb-avatar img{width:100%;height:100%;object-fit:cover}
+.lb-name{flex:1;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#e8edf5}
+.lb-days{font-size:14px;font-weight:700;color:#38bdf8;flex-shrink:0;text-shadow:0 0 10px rgba(56,189,248,.35)}
+.lb-empty{text-align:center;color:#6b7a90;font-size:13px;padding:16px 0}
+.loading{position:fixed;inset:0;background:#0b0e14;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:999;transition:opacity .5s}
+.loading.hidden{opacity:0;pointer-events:none}
+.loading-spinner{width:48px;height:48px;border:4px solid #2a3140;border-top-color:#f59e0b;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;color:#6b7a90}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a1f2b;border:1px solid #2a3140;border-radius:14px;padding:12px 20px;font-size:14px;font-weight:500;color:#e8edf5;box-shadow:0 8px 32px rgba(0,0,0,.6);z-index:1000;transition:all .35s;opacity:0;max-width:90%;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
 </head>
 <body>
-
 <div id="app">
-    <div class="profile-card">
-        <div class="avatar-wrap">
-            <div class="avatar" id="avatarBox">
-                <span class="avatar-letter" id="avatarLetter">?</span>
-            </div>
-            <div class="avatar-status" id="avatarStatus"></div>
-        </div>
-        <div class="profile-info">
-            <div class="profile-name" id="profileName">Завантаження...</div>
-            <div class="profile-id" id="profileId">ID: ---</div>
-        </div>
-    </div>
-
-    <div class="resources">
-        <div class="resource-item coins">
-            <span class="resource-emoji">🪙</span>
-            <div class="resource-value" id="coinsValue">0</div>
-            <div class="resource-label">Монети</div>
-        </div>
-        <div class="resource-item stars">
-            <span class="resource-emoji">⭐</span>
-            <div class="resource-value" id="starsValue">0</div>
-            <div class="resource-label">Зірки</div>
-        </div>
-        <div class="resource-item days">
-            <span class="resource-emoji">📅</span>
-            <div class="resource-value" id="daysValue">0</div>
-            <div class="resource-label">Дні</div>
-        </div>
-    </div>
-
-    <div class="flame-card alive" id="flameCard">
-        <span class="flame-emoji" id="flameEmoji">🔥</span>
-        <div class="flame-status" id="flameStatus">Вогник горить!</div>
-        <div class="timer green" id="timerDisplay">--:--:--</div>
-        <div class="timer-label" id="timerLabel">Згасне через</div>
-    </div>
-
-    <div class="actions">
-        <button class="btn btn-feed" id="btnFeed">🔥 Підкинути дров (+1 день)</button>
-        <button class="btn btn-rescue" id="btnRescue" disabled>❤️ Врятувати Вогник (1 🪙)</button>
-        <button class="btn btn-buy" id="btnBuy">⭐ Купити монету за 5 зірок</button>
-    </div>
-
-    <div class="leaderboard">
-        <div class="leaderboard-title">🏆 Топ-10 гравців</div>
-        <div id="leaderboardList">
-            <div class="lb-empty">Завантаження...</div>
-        </div>
-    </div>
+<div class="profile-card">
+<div class="avatar-wrap">
+<div class="avatar" id="avatarBox"><span class="avatar-letter" id="avatarLetter">?</span></div>
+<div class="avatar-status" id="avatarStatus"></div>
 </div>
-
+<div class="profile-info">
+<div class="profile-name" id="profileName">Завантаження...</div>
+<div class="profile-id" id="profileId">ID: ---</div>
+</div>
+</div>
+<div class="resources">
+<div class="resource-item coins"><span class="resource-emoji">🪙</span><div class="resource-value" id="coinsValue">0</div><div class="resource-label">Монети</div></div>
+<div class="resource-item stars"><span class="resource-emoji">⭐</span><div class="resource-value" id="starsValue">0</div><div class="resource-label">Зірки</div></div>
+<div class="resource-item days"><span class="resource-emoji">📅</span><div class="resource-value" id="daysValue">0</div><div class="resource-label">Дні</div></div>
+</div>
+<div class="flame-card alive" id="flameCard">
+<span class="flame-emoji" id="flameEmoji">🔥</span>
+<div class="flame-status" id="flameStatus">Вогник горить!</div>
+<div class="timer green" id="timerDisplay">--:--:--</div>
+<div class="timer-label" id="timerLabel">Згасне через</div>
+</div>
+<div class="actions">
+<button class="btn btn-feed" id="btnFeed">🔥 Підкинути дров (+1 день)</button>
+<button class="btn btn-rescue" id="btnRescue" disabled>❤️ Врятувати Вогник (1 🪙)</button>
+<button class="btn btn-buy" id="btnBuy">⭐ Купити монету за 5 зірок</button>
+</div>
+<div class="leaderboard">
+<div class="leaderboard-title">🏆 Топ-10 гравців</div>
+<div id="leaderboardList"><div class="lb-empty">Завантаження...</div></div>
+</div>
+</div>
 <div class="loading" id="loadingScreen">
-    <div class="loading-spinner"></div>
-    <div class="loading-text">Завантаження гри...</div>
+<div class="loading-spinner"></div>
+<div class="loading-text">Завантаження гри...</div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-        getFirestore,
-        doc,
-        getDoc,
-        setDoc,
-        updateDoc,
-        collection,
-        query,
-        orderBy,
-        limit,
-        onSnapshot,
-        serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyC53lY7Byyx0YWADr0BRlR-iWKIxF3SR-M",
-        authDomain: "fire-24f1d.firebaseapp.com",
-        projectId: "fire-24f1d",
-        storageBucket: "fire-24f1d.firebasestorage.app",
-        messagingSenderId: "710685292251",
-        appId: "1:710685292251:web:4bc12ffc66cf0917463efe"
-    };
+const firebaseConfig = {
+apiKey: "AIzaSyC53lY7Byyx0YWADr0BRlR-iWKIxF3SR-M",
+authDomain: "fire-24f1d.firebaseapp.com",
+projectId: "fire-24f1d",
+storageBucket: "fire-24f1d.firebasestorage.app",
+messagingSenderId: "710685292251",
+appId: "1:710685292251:web:4bc12ffc66cf0917463efe"
+};
 
-    const fbApp = initializeApp(firebaseConfig);
-    const db = getFirestore(fbApp);
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
 
-    // ============================================================
-    //  TELEGRAM WEB APP
-    // ============================================================
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-        tg.ready();
-        tg.expand();
-    }
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
 
-    let userId = "test_user_123";
-    let userName = "Тестовий Гравець";
-    let userLastName = "";
-    let userPhotoUrl = "";
+let userId = "test_user_123";
+let userName = "Тестовий Гравець";
+let userLastName = "";
+let userPhotoUrl = "";
 
-    if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
-        const u = tg.initDataUnsafe.user;
-        userId = String(u.id);
-        userName = u.first_name || "Гравець";
-        userLastName = u.last_name || "";
-        userPhotoUrl = u.photo_url || "";
-    }
+if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+const u = tg.initDataUnsafe.user;
+userId = String(u.id);
+userName = u.first_name || "Гравець";
+userLastName = u.last_name || "";
+userPhotoUrl = u.photo_url || "";
+}
+const fullName = (userName + (userLastName ? " " + userLastName : "")).trim();
 
-    const fullName = (userName + (userLastName ? " " + userLastName : "")).trim();
+const LIFETIME = 24 * 60 * 60 * 1000;
+const COIN_REWARD_INTERVAL = 10;
+const RESCUE_COST = 1;
+const STAR_COST = 5;
 
-    // ============================================================
-    //  КОНСТАНТИ ГРИ
-    // ============================================================
-    const LIFETIME = 24 * 60 * 60 * 1000; // 24 години
-    const COIN_REWARD_INTERVAL = 10;
-    const RESCUE_COST = 1;
-    const STAR_COST = 5;
+let state = { coins: 3, stars: 50, days: 0, isAlive: true, lastFed: Date.now(), name: fullName };
+let timerInterval = null, leaderboardUnsub = null, userDocUnsub = null, isProcessing = false;
 
-    // ============================================================
-    //  СТАН
-    // ============================================================
-    let state = {
-        coins: 3,
-        stars: 50,
-        days: 0,
-        isAlive: true,
-        lastFed: Date.now(),
-        name: fullName
-    };
+const $ = (id) => document.getElementById(id);
+const avatarBox = $("avatarBox"), avatarLetter = $("avatarLetter"), avatarStatus = $("avatarStatus");
+const profileName = $("profileName"), profileId = $("profileId");
+const coinsValue = $("coinsValue"), starsValue = $("starsValue"), daysValue = $("daysValue");
+const flameCard = $("flameCard"), flameEmoji = $("flameEmoji"), flameStatus = $("flameStatus");
+const timerDisplay = $("timerDisplay"), timerLabel = $("timerLabel");
+const btnFeed = $("btnFeed"), btnRescue = $("btnRescue"), btnBuy = $("btnBuy");
+const leaderboardList = $("leaderboardList"), loadingScreen = $("loadingScreen"), toastEl = $("toast");
 
-    let timerInterval = null;
-    let leaderboardUnsub = null;
-    let userDocUnsub = null;
-    let isProcessing = false;
+function showToast(msg, d = 2200) {
+toastEl.textContent = msg;
+toastEl.classList.add("show");
+clearTimeout(toastEl._t);
+toastEl._t = setTimeout(() => toastEl.classList.remove("show"), d);
+}
 
-    // ============================================================
-    //  DOM
-    // ============================================================
-    const $ = (id) => document.getElementById(id);
-    const avatarBox = $("avatarBox");
-    const avatarLetter = $("avatarLetter");
-    const avatarStatus = $("avatarStatus");
-    const profileName = $("profileName");
-    const profileId = $("profileId");
-    const coinsValue = $("coinsValue");
-    const starsValue = $("starsValue");
-    const daysValue = $("daysValue");
-    const flameCard = $("flameCard");
-    const flameEmoji = $("flameEmoji");
-    const flameStatus = $("flameStatus");
-    const timerDisplay = $("timerDisplay");
-    const timerLabel = $("timerLabel");
-    const btnFeed = $("btnFeed");
-    const btnRescue = $("btnRescue");
-    const btnBuy = $("btnBuy");
-    const leaderboardList = $("leaderboardList");
-    const loadingScreen = $("loadingScreen");
-    const toastEl = $("toast");
+function formatTimerText(ms) {
+if (ms <= 0) return "00:00:00";
+const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+return `${h}г ${String(m).padStart(2, "0")}хв ${String(sec).padStart(2, "0")}с`;
+}
 
-    // ============================================================
-    //  УТИЛІТИ
-    // ============================================================
-    function showToast(msg, duration = 2200) {
-        toastEl.textContent = msg;
-        toastEl.classList.add("show");
-        clearTimeout(toastEl._timeout);
-        toastEl._timeout = setTimeout(() => {
-            toastEl.classList.remove("show");
-        }, duration);
-    }
+function stringToGradient(str) {
+let hash = 0;
+for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+const h1 = Math.abs(hash) % 360, h2 = (h1 + 40) % 360;
+return `linear-gradient(135deg, hsl(${h1},75%,55%), hsl(${h2},80%,45%))`;
+}
 
-    function formatTimerText(ms) {
-        if (ms <= 0) return "00:00:00";
-        const totalSec = Math.floor(ms / 1000);
-        const h = Math.floor(totalSec / 3600);
-        const m = Math.floor((totalSec % 3600) / 60);
-        const s = totalSec % 60;
-        return `${h}г ${String(m).padStart(2, "0")}хв ${String(s).padStart(2, "0")}с`;
-    }
+function setAvatar(box, letterEl, name, photoUrl) {
+const letter = (name || "?").charAt(0).toUpperCase();
+const existingImg = box.querySelector("img");
+if (existingImg) existingImg.remove();
+if (photoUrl) {
+const img = document.createElement("img");
+img.src = photoUrl; img.alt = name;
+img.onerror = () => { img.remove(); letterEl.style.display = "flex"; letterEl.textContent = letter; box.style.background = stringToGradient(name || "?"); };
+box.appendChild(img);
+letterEl.style.display = "none";
+} else {
+letterEl.style.display = "flex"; letterEl.textContent = letter;
+box.style.background = stringToGradient(name || "?");
+}
+}
 
-    // Генерація кольорового градієнта на основі рядка
-    function stringToGradient(str) {
-        let hash = 0;
-        for (let i = 0; i < str.length; i++) {
-            hash = str.charCodeAt(i) + ((hash << 5) - hash);
-        }
-        const h1 = Math.abs(hash) % 360;
-        const h2 = (h1 + 40) % 360;
-        return `linear-gradient(135deg, hsl(${h1}, 75%, 55%), hsl(${h2}, 80%, 45%))`;
-    }
+function render() {
+setAvatar(avatarBox, avatarLetter, state.name, userPhotoUrl);
+avatarStatus.classList.toggle("offline", !state.isAlive);
+profileName.textContent = state.name || "Гравець";
+profileId.textContent = "ID: " + userId;
+coinsValue.textContent = state.coins;
+starsValue.textContent = state.stars;
+daysValue.textContent = state.days;
+if (state.isAlive) { flameCard.className = "flame-card alive"; flameEmoji.textContent = "🔥"; flameStatus.textContent = "Вогник горить!"; }
+else { flameCard.className = "flame-card dead"; flameEmoji.textContent = "💨"; flameStatus.textContent = "Вогник згас!"; }
+btnFeed.disabled = !state.isAlive;
+btnRescue.disabled = state.isAlive || state.coins < RESCUE_COST;
+btnBuy.disabled = state.stars < STAR_COST;
+updateTimer();
+}
 
-    // Встановлення аватарки: фото або літера
-    function setAvatar(element, imgElement, letterElement, name, photoUrl) {
-        const letter = (name || "?").charAt(0).toUpperCase();
-        if (photoUrl) {
-            imgElement.src = photoUrl;
-            imgElement.alt = name;
-            imgElement.style.display = "block";
-            if (letterElement) letterElement.style.display = "none";
-            imgElement.onerror = () => {
-                imgElement.style.display = "none";
-                if (letterElement) {
-                    letterElement.style.display = "flex";
-                    letterElement.textContent = letter;
-                }
-                element.style.background = stringToGradient(name || "?");
-            };
-        } else {
-            imgElement.style.display = "none";
-            if (letterElement) {
-                letterElement.style.display = "flex";
-                letterElement.textContent = letter;
-            }
-            element.style.background = stringToGradient(name || "?");
-        }
-    }
+function updateTimer() {
+if (!state.isAlive) { timerDisplay.textContent = "Вогник згас!"; timerDisplay.className = "timer red"; timerLabel.textContent = "Потрібен порятунок"; return; }
+const remaining = LIFETIME - (Date.now() - state.lastFed);
+if (remaining <= 0) { timerDisplay.textContent = "Вогник згас!"; timerDisplay.className = "timer red"; timerLabel.textContent = "Потрібен порятунок"; return; }
+timerDisplay.textContent = formatTimerText(remaining);
+timerDisplay.className = "timer green";
+timerLabel.textContent = "Згасне через";
+}
 
-    // ============================================================
-    //  ВІДОБРАЖЕННЯ
-    // ============================================================
-    function render() {
-        // Аватарка
-        setAvatar(avatarBox, avatarBox.querySelector("img"), avatarLetter, state.name, userPhotoUrl);
+async function initUser() {
+const userRef = doc(db, "players", userId);
+const snap = await getDoc(userRef);
+if (!snap.exists()) {
+const np = { coins: 3, stars: 50, days: 0, isAlive: true, lastFed: Date.now(), name: fullName, photoUrl: userPhotoUrl || "", createdAt: serverTimestamp() };
+await setDoc(userRef, np);
+state = { ...np };
+} else {
+const d = snap.data();
+state = { coins: d.coins ?? 3, stars: d.stars ?? 50, days: d.days ?? 0, isAlive: d.isAlive ?? true, lastFed: d.lastFed ?? Date.now(), name: d.name || fullName };
+}
+if (userDocUnsub) userDocUnsub();
+userDocUnsub = onSnapshot(userRef, (ds) => {
+if (!ds.exists()) return;
+const d = ds.data();
+state.coins = d.coins ?? state.coins;
+state.stars = d.stars ?? state.stars;
+state.days = d.days ?? state.days;
+state.isAlive = d.isAlive ?? state.isAlive;
+state.lastFed = d.lastFed ?? state.lastFed;
+state.name = d.name || state.name;
+render();
+});
+render();
+}
 
-        // Статус онлайн/офлайн
-        if (state.isAlive) {
-            avatarStatus.classList.remove("offline");
-        } else {
-            avatarStatus.classList.add("offline");
-        }
+async function updateFirestore(fields) {
+try { await updateDoc(doc(db, "players", userId), fields); }
+catch (e) { console.error(e); showToast("Помилка збереження"); }
+}
 
-        profileName.textContent = state.name || "Гравець";
-        profileId.textContent = "ID: " + userId;
+async function checkFlameStatus() {
+if (!state.isAlive) return;
+if (Date.now() - state.lastFed >= LIFETIME) {
+state.isAlive = false; render();
+await updateFirestore({ isAlive: false });
+showToast("💨 Вогник згас! Потрібен порятунок.");
+}
+}
 
-        coinsValue.textContent = state.coins;
-        starsValue.textContent = state.stars;
-        daysValue.textContent = state.days;
+async function onFeed() {
+if (isProcessing || !state.isAlive) return;
+isProcessing = true; btnFeed.disabled = true;
+try {
+const newDays = state.days + 1, now = Date.now();
+let newCoins = state.coins, earned = false;
+if (newDays % COIN_REWARD_INTERVAL === 0) { newCoins++; earned = true; }
+state.days = newDays; state.coins = newCoins; state.lastFed = now; state.isAlive = true;
+render();
+await updateFirestore({ days: newDays, coins: newCoins, lastFed: now, isAlive: true });
+showToast(earned ? `🎉 +1 монета за ${newDays} днів!` : `🔥 Дров підкинуто! День ${newDays}`);
+} catch (e) { console.error(e); }
+finally { isProcessing = false; render(); }
+}
 
-        if (state.isAlive) {
-            flameCard.className = "flame-card alive";
-            flameEmoji.textContent = "🔥";
-            flameStatus.textContent = "Вогник горить!";
-        } else {
-            flameCard.className = "flame-card dead";
-            flameEmoji.textContent = "💨";
-            flameStatus.textContent = "Вогник згас!";
-        }
+async function onRescue() {
+if (isProcessing || state.isAlive || state.coins < RESCUE_COST) return;
+isProcessing = true; btnRescue.disabled = true;
+try {
+const newCoins = state.coins - RESCUE_COST, now = Date.now();
+state.coins = newCoins; state.isAlive = true; state.lastFed = now;
+render();
+await updateFirestore({ coins: newCoins, isAlive: true, lastFed: now });
+showToast("❤️ Вогник врятовано!");
+} catch (e) { console.error(e); }
+finally { isProcessing = false; render(); }
+}
 
-        btnFeed.disabled = !state.isAlive;
-        btnRescue.disabled = state.isAlive || state.coins < RESCUE_COST;
-        btnBuy.disabled = state.stars < STAR_COST;
+async function onBuy() {
+if (isProcessing || state.stars < STAR_COST) return;
+isProcessing = true; btnBuy.disabled = true;
+try {
+const newStars = state.stars - STAR_COST, newCoins = state.coins + 1;
+state.stars = newStars; state.coins = newCoins;
+render();
+await updateFirestore({ stars: newStars, coins: newCoins });
+showToast("🪙 Монету придбано!");
+} catch (e) { console.error(e); }
+finally { isProcessing = false; render(); }
+}
 
-        updateTimer();
-    }
+function initLeaderboard() {
+if (leaderboardUnsub) leaderboardUnsub();
+const q = query(collection(db, "players"), orderBy("days", "desc"), limit(10));
+leaderboardUnsub = onSnapshot(q, (snap) => {
+const players = [];
+snap.forEach((d) => {
+const data = d.data();
+players.push({ id: d.id, name: data.name || "Гравець", days: data.days || 0, isAlive: data.isAlive, photoUrl: data.photoUrl || "" });
+});
+renderLeaderboard(players);
+}, (err) => {
+console.error(err);
+leaderboardList.innerHTML = '<div class="lb-empty">Не вдалося завантажити</div>';
+});
+}
 
-    function updateTimer() {
-        if (!state.isAlive) {
-            timerDisplay.textContent = "Вогник згас!";
-            timerDisplay.className = "timer red";
-            timerLabel.textContent = "Потрібен порятунок";
-            return;
-        }
+function escapeHtml(str) { const d = document.createElement("div"); d.textContent = str; return d.innerHTML; }
 
-        const elapsed = Date.now() - state.lastFed;
-        const remaining = LIFETIME - elapsed;
+function renderLeaderboard(players) {
+if (!players.length) { leaderboardList.innerHTML = '<div class="lb-empty">Поки що немає гравців</div>'; return; }
+let html = "";
+players.forEach((p, i) => {
+const rank = i + 1;
+let rc = "";
+if (rank === 1) rc = "gold"; else if (rank === 2) rc = "silver"; else if (rank === 3) rc = "bronze";
+const isCurrent = p.id === userId;
+const rowClass = isCurrent ? "lb-row current-user" : "lb-row";
+const flameIcon = p.isAlive ? "🔥" : "💨";
+const letter = (p.name || "?").charAt(0).toUpperCase();
+const gradient = stringToGradient(p.name || "?");
+const avatarContent = p.photoUrl
+? `<img src="${p.photoUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';this.nextElementSibling.textContent='${letter}';this.parentElement.style.background='${gradient}';">`
+: "";
+html += `<div class="${rowClass}">
+<div class="lb-rank ${rc}">${rank}</div>
+<div class="lb-avatar" style="background:${gradient}">${avatarContent}<span style="display:${p.photoUrl ? "none" : "flex"};width:100%;height:100%;align-items:center;justify-content:center;">${letter}</span></div>
+<div class="lb-name">${escapeHtml(p.name)} ${flameIcon}</div>
+<div class="lb-days">${p.days} дн</div>
+</div>`;
+});
+leaderboardList.innerHTML = html;
+}
 
-        if (remaining <= 0) {
-            timerDisplay.textContent = "Вогник згас!";
-            timerDisplay.className = "timer red";
-            timerLabel.textContent = "Потрібен порятунок";
-            return;
-        }
+function startTimer() {
+if (timerInterval) clearInterval(timerInterval);
+timerInterval = setInterval(async () => { updateTimer(); await checkFlameStatus(); }, 1000);
+}
 
-        timerDisplay.textContent = formatTimerText(remaining);
-        timerDisplay.className = "timer green";
-        timerLabel.textContent = "Згасне через";
-    }
+async function init() {
+try {
+await initUser();
+await checkFlameStatus();
+initLeaderboard();
+startTimer();
+btnFeed.addEventListener("click", onFeed);
+btnRescue.addEventListener("click", onRescue);
+btnBuy.addEventListener("click", onBuy);
+setTimeout(() => loadingScreen.classList.add("hidden"), 400);
+render();
+} catch (e) {
+console.error(e);
+loadingScreen.querySelector(".loading-text").textContent = "Помилка завантаження";
+}
+}
 
-    // ============================================================
-    //  FIREBASE
-    // ============================================================
-    async function initUser() {
-        const userRef = doc(db, "players", userId);
-        const snap = await getDoc(userRef);
-
-        if (!snap.exists()) {
-            const newPlayer = {
-                coins: 3,
-                stars: 50,
-                days: 0,
-                isAlive: true,
-                lastFed: Date.now(),
-                name: fullName,
-                photoUrl: userPhotoUrl || "",
-                createdAt: serverTimestamp()
-            };
-            await setDoc(userRef, newPlayer);
-            state = { ...newPlayer };
-        } else {
-            const data = snap.data();
-            state = {
-                coins: data.coins ?? 3,
-                stars: data.stars ?? 50,
-                days: data.days ?? 0,
-                isAlive: data.isAlive ?? true,
-                lastFed: data.lastFed ?? Date.now(),
-                name: data.name || fullName
-            };
-            // Оновимо photoUrl у БД, якщо є нове
-            if (userPhotoUrl && data.photoUrl !== userPhotoUrl) {
-                try {
-                    await updateDoc(userRef, { photoUrl: userPhotoUrl });
-                } catch (e) { /* ignore */ }
-            }
-        }
-
-        if (userDocUnsub) userDocUnsub();
-        userDocUnsub = onSnapshot(userRef, (docSnap) => {
-            if (!docSnap.exists()) return;
-            const data = docSnap.data();
-            state.coins = data.coins ?? state.coins;
-            state.stars = data.stars ?? state.stars;
-            state.days = data.days ?? state.days;
-            state.isAlive = data.isAlive ?? state.isAlive;
-            state.lastFed = data.lastFed ?? state.lastFed;
-            state.name = data.name || state.name;
-            render();
-        });
-
-        render();
-    }
-
-    async function updateFirestore(fields) {
-        const userRef = doc(db, "players", userId);
-        try {
-            await updateDoc(userRef, fields);
-        } catch (e) {
-            console.error("Помилка оновлення:", e);
-            showToast("Помилка збереження. Спробуйте ще раз.");
-        }
-    }
-
-    // ============================================================
-    //  ПЕРЕВІРКА ТАЙМЕРА
-    // ============================================================
-    async function checkFlameStatus() {
-        if (!state.isAlive) return;
-        const elapsed = Date.now() - state.lastFed;
-        if (elapsed >= LIFETIME) {
-            state.isAlive = false;
-            render();
-            await updateFirestore({ isAlive: false });
-            showToast("💨 Вогник згас! Потрібен порятунок.");
-        }
-    }
-
-    // ============================================================
-    //  ДІЇ
-    // ============================================================
-    async function onFeed() {
-        if (isProcessing || !state.isAlive) return;
-        isProcessing = true;
-        btnFeed.disabled = true;
-
-        try {
-            const newDays = state.days + 1;
-            const now = Date.now();
-            let newCoins = state.coins;
-            let coinEarned = false;
-            if (newDays % COIN_REWARD_INTERVAL === 0) {
-                newCoins += 1;
-                coinEarned = true;
-            }
-
-            state.days = newDays;
-            state.coins = newCoins;
-            state.lastFed = now;
-            state.isAlive = true;
-            render();
-
-            await updateFirestore({
-                days: newDays,
-                coins: newCoins,
-                lastFed: now,
-                isAlive: true
-            });
-
-            showToast(coinEarned ? `🎉 +1 монета за ${newDays} днів!` : `🔥 Дров підкинуто! День ${newDays}`);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            isProcessing = false;
-            render();
-        }
-    }
-
-    async function onRescue() {
-        if (isProcessing || state.isAlive || state.coins < RESCUE_COST) return;
-        isProcessing = true;
-        btnRescue.disabled = true;
-
-        try {
-            const newCoins = state.coins - RESCUE_COST;
-            const now = Date.now();
-
-            state.coins = newCoins;
-            state.isAlive = true;
-            state.lastFed = now;
-            render();
-
-            await updateFirestore({
-                coins: newCoins,
-                isAlive: true,
-                lastFed: now
-            });
-
-            showToast("❤️ Вогник врятовано!");
-        } catch (e) {
-            console.error(e);
-        } finally {
-            isProcessing = false;
-            render();
-        }
-    }
-
-    async function onBuy() {
-        if (isProcessing || state.stars < STAR_COST) return;
-        isProcessing = true;
-        btnBuy.disabled = true;
-
-        try {
-            const newStars = state.stars - STAR_COST;
-            const newCoins = state.coins + 1;
-
-            state.stars = newStars;
-            state.coins = newCoins;
-            render();
-
-            await updateFirestore({ stars: newStars, coins: newCoins });
-            showToast("🪙 Монету придбано!");
-        } catch (e) {
-            console.error(e);
-        } finally {
-            isProcessing = false;
-            render();
-        }
-    }
-
-    // ============================================================
-    //  ЛІДЕРБОРД
-    // ============================================================
-    function initLeaderboard() {
-        if (leaderboardUnsub) leaderboardUnsub();
-
-        const q = query(collection(db, "players"), orderBy("days", "desc"), limit(10));
-
-        leaderboardUnsub = onSnapshot(q, (snapshot) => {
-            const players = [];
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                players.push({
-                    id: docSnap.id,
-                    name: data.name || "Гравець",
-                    days: data.days || 0,
-                    isAlive: data.isAlive,
-                    photoUrl: data.photoUrl || ""
-                });
-            });
-            renderLeaderboard(players);
-        }, (error) => {
-            console.error("Помилка лідерборду:", error);
-            leaderboardList.innerHTML = '<div class="lb-empty">Не вдалося завантажити</div>';
-        });
-    }
-
-    function renderLeaderboard(players) {
-        if (!players.length) {
-            leaderboardList.innerHTML = '<div class="lb-empty">Поки що немає гравців</div>';
-            return;
-        }
-
-        let html = "";
-        players.forEach((p, i) => {
-            const rank = i + 1;
-            let rankClass = "";
-            if (rank === 1) rankClass = "gold";
-            else if (rank === 2) rankClass = "silver";
-            else if (rank === 3) rankClass = "bronze";
-
-            const isCurrent = p.id === userId;
-            const rowClass = isCurrent ? "lb-row current-user" : "lb-row";
-            const flameIcon = p.isAlive ? "🔥" : "💨";
-            const letter = (p.name || "?").charAt(0).toUpperCase();
-            const gradient = stringToGradient(p.name || "?");
-
-            const avatarContent = p.photoUrl
-                ? `<img src="${p.photoUrl}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';this.nextElementSibling.textContent='${letter}';this.parentElement.style.background='${gradient}';">`
-                : "";
-
-            html += `
-                <div class="${rowClass}">
-                    <div class="lb-rank ${rankClass}">${rank}</div>
-                    <div class="lb-avatar" style="background: ${gradient}">
-                        ${avatarContent}
-                        <span style="display:${p.photoUrl ? "none" : "flex"};width:100%;height:100%;align-items:center;justify-content:center;">${letter}</span>
-                    </div>
-                    <div class="lb-name">${escapeHtml(p.name)} ${flameIcon}</div>
-                    <div class="lb-days">${p.days} дн</div>
-                </div>
-            `;
-        });
-
-        leaderboardList.innerHTML = html;
-    }
-
-    function escapeHtml(str) {
-        const div = document.createElement("div");
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    // ============================================================
-    //  ТАЙМЕР
-    // ============================================================
-    function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(async () => {
-            updateTimer();
-            await checkFlameStatus();
-        }, 1000);
-    }
-
-    // ============================================================
-    //  ІНІЦІАЛІЗАЦІЯ
-    // ============================================================
-    async function init() {
-        try {
-            await initUser();
-            await checkFlameStatus();
-            initLeaderboard();
-            startTimer();
-
-            btnFeed.addEventListener("click", onFeed);
-            btnRescue.addEventListener("click", onRescue);
-            btnBuy.addEventListener("click", onBuy);
-
-            setTimeout(() => {
-                loadingScreen.classList.add("hidden");
-            }, 400);
-
-            render();
-        } catch (e) {
-            console.error("Помилка ініціалізації:", e);
-            loadingScreen.querySelector(".loading-text").textContent =
-                "Помилка завантаження. Оновіть сторінку.";
-        }
-    }
-
-    init();
-
-    window.addEventListener("beforeunload", () => {
-        if (timerInterval) clearInterval(timerInterval);
-        if (leaderboardUnsub) leaderboardUnsub();
-        if (userDocUnsub) userDocUnsub();
-    });
+init();
+window.addEventListener("beforeunload", () => {
+if (timerInterval) clearInterval(timerInterval);
+if (leaderboardUnsub) leaderboardUnsub();
+if (userDocUnsub) userDocUnsub();
+});
 </script>
-
 </body>
 </html>
