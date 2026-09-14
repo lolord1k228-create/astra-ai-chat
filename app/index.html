@@ -14,7 +14,6 @@ body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .avatar-wrap{position:relative;width:52px;height:52px;flex-shrink:0}
 .avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;overflow:hidden;border:2px solid rgba(255,255,255,.1);box-shadow:0 0 14px rgba(59,130,246,.5)}
 .avatar img{width:100%;height:100%;object-fit:cover}
-.avatar-letter{font-size:22px;font-weight:700}
 .profile-info{flex:1;min-width:0}
 .profile-name{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .profile-id{font-size:11px;color:#6b7a90;margin-top:2px}
@@ -36,8 +35,8 @@ body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .case-card:hover{border-color:#fbbf24;box-shadow:0 0 20px rgba(251,191,36,.3)}
 .case-card.coffin{border-color:#dc2626;background:linear-gradient(180deg,#2a0f0f,#150707);padding:16px 12px}
 .case-card.coffin:hover{border-color:#ef4444;box-shadow:0 0 24px rgba(220,38,38,.5)}
-.case-img{width:70px;height:70px;margin:0 auto 6px;display:block;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
-.case-card.coffin .case-img{width:100px;height:100px}
+.case-img{width:70px;height:70px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:44px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+.case-card.coffin .case-img{width:100px;height:100px;font-size:64px}
 .case-name{font-size:11px;font-weight:700;color:#e8edf5;margin-bottom:2px}
 .case-price{font-size:10px;color:#fbbf24;font-weight:600}
 .case-card.coffin .case-price{color:#ef4444;font-size:12px;margin-top:4px}
@@ -52,13 +51,13 @@ body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .roulette-wrap{position:relative;height:120px;margin-bottom:16px;border-radius:14px;overflow:hidden;background:#0a0c10;border:2px solid #2a3140}
 .roulette-track{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;gap:6px;padding:0 20px}
 .roulette-item{flex-shrink:0;width:90px;height:90px;background:#1a1f2b;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;border:2px solid #2a3140}
-.roulette-item img{width:56px;height:56px;object-fit:contain;margin-bottom:2px}
+.roulette-item .r-emoji{font-size:38px;margin-bottom:2px;line-height:1}
 .roulette-item .r-name{font-size:8px;font-weight:600;text-align:center;line-height:1.1;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .roulette-pointer{position:absolute;top:0;left:50%;transform:translateX(-50%);width:3px;height:100%;background:linear-gradient(180deg,#fbbf24,#ef4444);box-shadow:0 0 20px #fbbf24;z-index:10}
 .roulette-pointer::before{content:"▼";position:absolute;top:-8px;left:50%;transform:translateX(-50%);color:#fbbf24;font-size:16px;filter:drop-shadow(0 0 6px #fbbf24)}
 
 .win-item{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:14px}
-.win-item img{width:140px;height:140px;object-fit:contain;filter:drop-shadow(0 0 24px currentColor)}
+.win-item .w-emoji{font-size:100px;line-height:1;filter:drop-shadow(0 0 24px currentColor)}
 .win-item .w-name{font-size:18px;font-weight:800;letter-spacing:.5px}
 .win-item .w-rarity{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:3px 12px;border-radius:20px;background:rgba(255,255,255,.08)}
 
@@ -68,6 +67,7 @@ body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .btn-open{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;box-shadow:0 4px 20px rgba(245,158,11,.5)}
 .btn-close{background:#2a3140;color:#e8edf5;margin-top:8px}
 .btn-sell{background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 4px 20px rgba(16,185,129,.4)}
+.btn-add{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.4);margin-top:8px}
 
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a1f2b;border:1px solid #2a3140;border-radius:12px;padding:10px 18px;font-size:13px;font-weight:500;color:#e8edf5;box-shadow:0 8px 30px rgba(0,0,0,.7);z-index:2000;transition:all .35s;opacity:0;max-width:90%;text-align:center}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
@@ -82,7 +82,7 @@ body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .inv-title{font-size:13px;font-weight:700;color:#a78bfa;text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
 .inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:220px;overflow-y:auto}
 .inv-item{background:#12161f;border-radius:8px;padding:6px 4px;text-align:center;border:1px solid #2a3140;position:relative}
-.inv-item img{width:40px;height:40px;object-fit:contain;display:block;margin:0 auto 2px}
+.inv-item .inv-emoji{font-size:28px;line-height:1;display:block;margin-bottom:2px}
 .inv-item .inv-name{font-size:8px;font-weight:600;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .inv-empty{text-align:center;color:#6b7a90;font-size:12px;padding:12px 0}
 </style>
@@ -91,7 +91,7 @@ body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 <div id="app">
 
 <div class="profile-card">
-<div class="avatar-wrap"><div class="avatar" id="avatarBox"><span class="avatar-letter" id="avatarLetter">?</span></div></div>
+<div class="avatar-wrap"><div class="avatar" id="avatarBox"><span id="avatarLetter">?</span></div></div>
 <div class="profile-info">
 <div class="profile-name" id="profileName">Гравець</div>
 <div class="profile-id" id="profileId">ID: ---</div>
@@ -138,22 +138,45 @@ body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 <div class="toast" id="toast"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// ============================================================
+//  FIREBASE (з захистом — якщо не завантажиться, гра все одно працює)
+// ============================================================
+let db = null;
+let firebaseReady = false;
 
-const firebaseConfig = {
+try {
+const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+const { getFirestore } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+const fbApp = initializeApp({
 apiKey: "AIzaSyC53lY7Byyx0YWADr0BRlR-iWKIxF3SR-M",
 authDomain: "fire-24f1d.firebaseapp.com",
 projectId: "fire-24f1d",
 storageBucket: "fire-24f1d.firebasestorage.app",
 messagingSenderId: "710685292251",
 appId: "1:710685292251:web:4bc12ffc66cf0917463efe"
-};
-const fbApp = initializeApp(firebaseConfig);
-const db = getFirestore(fbApp);
+});
+db = getFirestore(fbApp);
+firebaseReady = true;
+} catch (e) {
+console.warn("Firebase не завантажився, гра в офлайн-режимі:", e);
+}
 
+// Динамічні імпорти Firestore (якщо Firebase готовий)
+let fsDoc, fsGetDoc, fsSetDoc, fsUpdateDoc, fsOnSnapshot, fsServerTimestamp;
+if (firebaseReady) {
+try {
+const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+fsDoc = fs.doc; fsGetDoc = fs.getDoc; fsSetDoc = fs.setDoc;
+fsUpdateDoc = fs.updateDoc; fsOnSnapshot = fs.onSnapshot;
+fsServerTimestamp = fs.serverTimestamp;
+} catch (e) { console.warn("Firestore модулі не завантажились", e); }
+}
+
+// ============================================================
+//  TELEGRAM
+// ============================================================
 const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); }
+if (tg) { try { tg.ready(); tg.expand(); } catch(e){} }
 
 let userId = "test_user_123", userName = "Тестовий", userLastName = "", userPhotoUrl = "";
 if (tg?.initDataUnsafe?.user) {
@@ -198,10 +221,14 @@ legendary: { name: "Легендарний", color: "#f59e0b", weight: 2.5,  pri
 ancient:   { name: "Древній",     color: "#ef4444", weight: 0.5,  price: 300 }
 };
 
-// ============ 150 СКІНІВ (50 + 50 + 50) ============
+// ============ ЕМОДЗІ-ЗАГЛУШКИ ДЛЯ КОЖНОГО ТИПУ ============
+const TYPE_EMOJI = { knife: "🗡️", gloves: "🧤", gun: "🔫" };
+const CASE_EMOJI = "📦";
+const COFFIN_EMOJI = "⚰️";
+
+// ============ 150 СКІНІВ ============
 const SKINS = [];
 
-// 🗡️ НОЖІ (50)
 const KNIFE_NAMES = ["Керамбіт","Бабочка","Штих","Танто","Кунай","Класік","Фліп","Хантер","Боуї","Номад",
 "Пушдаг","Талон","Урсус","Наваха","Стілетто","Паракорд","Скелет","Сурж","Кулі","Мясник",
 "Кобра","Скорпіон","Фантом","Тінь","Ворон","Клинок","Лезо","Різак","Кинджал","Шабля",
@@ -209,13 +236,10 @@ const KNIFE_NAMES = ["Керамбіт","Бабочка","Штих","Танто"
 "Зубр","Вовк","Ведмідь","Лев","Тигр","Дракон","Фенікс","Орел","Яструб","Грифон"];
 for (let i = 1; i <= 50; i++) {
 const rar = i <= 15 ? "common" : i <= 25 ? "uncommon" : i <= 35 ? "rare" : i <= 42 ? "mythical" : i <= 47 ? "legendary" : "ancient";
-SKINS.push({
-id: `knife_${i}`, name: `Ніж «${KNIFE_NAMES[i-1]}»`, type: "knife",
-img: `textures/skins/knife_${String(i).padStart(2,'0')}.png`, rarity: rar
-});
+SKINS.push({ id: `knife_${i}`, name: `Ніж «${KNIFE_NAMES[i-1]}»`, type: "knife",
+img: `textures/skins/knife_${String(i).padStart(2,'0')}.png`, rarity: rar });
 }
 
-// 🧤 РУКАВИЧКИ (50)
 const GLOVE_NAMES = ["Спецназ","Кривава","Дракон","Вогняні","Кібер","Неон","Хром","Золоті","Срібні","Бронзові",
 "Тіньові","Льодові","Отруйні","Космічні","Вулканічні","Штормові","Грозові","Кристальні","Діамантові","Рубінові",
 "Смарагдові","Сапфірові","Аметистові","Топазові","Оніксові","Мідні","Сталеві","Титанові","Платинові","Іридиєві",
@@ -223,13 +247,10 @@ const GLOVE_NAMES = ["Спецназ","Кривава","Дракон","Вогн�
 "Королівські","Імператорські","Царські","Фараонові","Богатирські","Козацькі","Січові","Характерні","Військові","Спеціальні"];
 for (let i = 1; i <= 50; i++) {
 const rar = i <= 15 ? "common" : i <= 25 ? "uncommon" : i <= 35 ? "rare" : i <= 42 ? "mythical" : i <= 47 ? "legendary" : "ancient";
-SKINS.push({
-id: `gloves_${i}`, name: `Рукавички «${GLOVE_NAMES[i-1]}»`, type: "gloves",
-img: `textures/skins/gloves_${String(i).padStart(2,'0')}.png`, rarity: rar
-});
+SKINS.push({ id: `gloves_${i}`, name: `Рукавички «${GLOVE_NAMES[i-1]}»`, type: "gloves",
+img: `textures/skins/gloves_${String(i).padStart(2,'0')}.png`, rarity: rar });
 }
 
-// 🔫 ПУШКИ (50)
 const GUN_NAMES = ["АК-47","М4А4","M4A1-S","AWP","SSG 08","SCAR-20","G3SG1","FAMAS","Galil AR","AUG",
 "SG 553","MP9","MAC-10","MP7","MP5-SD","UMP-45","P90","PP-Bizon","Nova","XM1014",
 "Mag-7","Sawed-Off","M249","Negev","Desert Eagle","R8 Revolver","Glock-18","USP-S","P2000","P250",
@@ -237,10 +258,8 @@ const GUN_NAMES = ["АК-47","М4А4","M4A1-S","AWP","SSG 08","SCAR-20","G3SG1",
 "AK Fire Serpent","M4 Howl","AWP Wildfire","AK Vulcan","M4 Hyper Beast","AWP Neo-Noir","AK Neon Rider","M4 Neo-Noir","AWP Fever Dream","AK Bloodsport"];
 for (let i = 1; i <= 50; i++) {
 const rar = i <= 15 ? "common" : i <= 25 ? "uncommon" : i <= 35 ? "rare" : i <= 42 ? "mythical" : i <= 47 ? "legendary" : "ancient";
-SKINS.push({
-id: `gun_${i}`, name: `${GUN_NAMES[i-1]}`, type: "gun",
-img: `textures/skins/gun_${String(i).padStart(2,'0')}.png`, rarity: rar
-});
+SKINS.push({ id: `gun_${i}`, name: `${GUN_NAMES[i-1]}`, type: "gun",
+img: `textures/skins/gun_${String(i).padStart(2,'0')}.png`, rarity: rar });
 }
 
 // ============ 25 ЯЩИКІВ ============
@@ -250,7 +269,7 @@ const CASE_NAMES = ["Дерев'яний","Залізний","Сталевий",
 const CASES = [];
 for (let i = 1; i <= 25; i++) {
 CASES.push({
-id: `case_${i}`, name: `Ящик «${CASE_NAMES[i-1]}»`,
+id: `case_${i}`, name: `«${CASE_NAMES[i-1]}»`,
 img: `textures/cases/case_${String(i).padStart(2,'0')}.png`,
 price: CASE_PRICE,
 rarityBoost: i <= 5 ? 0 : i <= 10 ? 1 : i <= 15 ? 2 : i <= 20 ? 3 : i <= 24 ? 4 : 5
@@ -260,7 +279,6 @@ rarityBoost: i <= 5 ? 0 : i <= 10 ? 1 : i <= 15 ? 2 : i <= 20 ? 3 : i <= 24 ? 4 
 // ============ РАНДОМ ============
 function pickSkinByRarity(boost = 0) {
 const keys = Object.keys(RARITY);
-// boost зсуває шанси в бік рідкісних
 const total = keys.reduce((s, k) => s + RARITY[k].weight, 0);
 let r = Math.random() * total;
 let chosen = "common";
@@ -268,7 +286,6 @@ for (const k of keys) {
 if (r < RARITY[k].weight) { chosen = k; break; }
 r -= RARITY[k].weight;
 }
-// Застосовуємо boost — якщо випало common, є шанс підняти рівень
 if (boost > 0 && chosen === "common") {
 const upgrade = Math.random();
 if (upgrade < 0.05 * boost) chosen = "uncommon";
@@ -279,7 +296,6 @@ return pool.length ? pool[Math.floor(Math.random() * pool.length)] : SKINS[0];
 }
 
 function pickSkinCoffin() {
-// Гробовець: ексклюзивні топові скіни
 const roll = Math.random();
 if (roll < 0.02) return SKINS.filter(s => s.rarity === "ancient")[Math.floor(Math.random()*3)];
 if (roll < 0.15) return SKINS.filter(s => s.rarity === "legendary")[Math.floor(Math.random()*5)];
@@ -310,11 +326,21 @@ avatarBox.style.background = stringToGradient(state.name || "?");
 }
 }
 
+// ============ ІКОНКА З FALLBACK ============
+function iconHTML(item, size = 44) {
+// Повертає HTML з <img> + emoji-заглушкою. Якщо картинка не завантажиться — покажеться emoji.
+const emoji = TYPE_EMOJI[item.type] || "📦";
+const color = RARITY[item.rarity]?.color || "#9ca3af";
+const uniq = "img_" + Math.random().toString(36).slice(2, 9);
+return `<img src="${item.img}" alt="${item.name}" style="display:none;width:${size}px;height:${size}px;object-fit:contain" onload="this.style.display='block';document.getElementById('${uniq}').style.display='none'" onerror="this.remove()">
+<span id="${uniq}" class="r-emoji" style="color:${color};font-size:${size * 0.85}px">${emoji}</span>`;
+}
+
 // ============ РЕНДЕР ============
 function render() {
 setAvatar();
 profileName.textContent = state.name || "Гравець";
-profileId.textContent = "ID: " + userId;
+profileId.textContent = "ID: " + userId + (firebaseReady ? "" : " (офлайн)");
 coinsValue.textContent = state.coins;
 starsValue.textContent = state.stars;
 itemsValue.textContent = (state.inventory || []).length;
@@ -327,7 +353,7 @@ casesGrid.innerHTML = CASES.map(c => {
 const badge = c.rarityBoost >= 4 ? '<div class="case-badge">TOP</div>' : '';
 return `<div class="case-card" data-case="${c.id}" data-price="${c.price}">
 ${badge}
-<img class="case-img" src="${c.img}" alt="${c.name}" onerror="this.style.opacity='.3'">
+<div class="case-img">📦</div>
 <div class="case-name">${c.name}</div>
 <div class="case-price">${c.price} 🪙</div>
 </div>`;
@@ -340,8 +366,8 @@ el.addEventListener("click", () => openCaseModal(el.dataset.case, parseInt(el.da
 coffinSlot.innerHTML = `
 <div class="case-card coffin" data-case="coffin" data-price="${COFFIN_PRICE}">
 <div class="case-badge">🔥 ТОП</div>
-<img class="case-img" src="textures/coffin/coffin.png" alt="Гробовець" onerror="this.style.opacity='.3'">
-<div class="case-name" style="font-size:14px">⚰️ Гробовець</div>
+<div class="case-img">⚰️</div>
+<div class="case-name" style="font-size:14px">Гробовець</div>
 <div class="case-price">${COFFIN_PRICE} 🪙 · ексклюзивні скіни</div>
 </div>
 `;
@@ -355,31 +381,37 @@ invGrid.innerHTML = '<div class="inv-empty" style="grid-column:1/-1">Порож�
 return;
 }
 const items = inv.slice(-12).reverse();
-invGrid.innerHTML = items.map(it => `
-<div class="inv-item" title="${it.name}" style="border-color:${it.rarityColor || '#2a3140'}">
-<img src="${it.img}" alt="${it.name}" onerror="this.style.opacity='.3'">
-<div class="inv-name" style="color:${it.rarityColor || '#e8edf5'}">${it.name}</div>
-</div>
-`).join("");
+invGrid.innerHTML = items.map(it => {
+const emoji = TYPE_EMOJI[it.type] || "📦";
+const color = it.rarityColor || RARITY[it.rarity]?.color || "#e8edf5";
+const uniq = "inv_" + (it.uid || Math.random().toString(36).slice(2, 9));
+return `<div class="inv-item" title="${it.name}" style="border-color:${color}">
+<img src="${it.img}" alt="" style="display:none;width:40px;height:40px;object-fit:contain;margin:0 auto 2px" onload="this.style.display='block';document.getElementById('${uniq}').style.display='none'" onerror="this.remove()">
+<span id="${uniq}" class="inv-emoji" style="color:${color}">${emoji}</span>
+<div class="inv-name" style="color:${color}">${it.name}</div>
+</div>`;
+}).join("");
 }
 
 // ============ МОДАЛКА ============
 function openCaseModal(caseId, price) {
 if (!state.inventory) state.inventory = [];
-if (state.coins < price) {
-showToast(`❌ Недостатньо монет! Потрібно ${price} 🪙`);
-return;
-}
+if (state.coins < price) { showToast(`❌ Недостатньо монет! Потрібно ${price} 🪙`); return; }
 currentCase = { id: caseId, price };
 modalTitle.textContent = caseId === "coffin" ? "⚰️ Гробовець" : "📦 Відкриття ящика";
 
 const preview = [];
 for (let i = 0; i < 30; i++) preview.push(pickSkinByRarity());
-rouletteTrack.innerHTML = preview.map(s => `
-<div class="roulette-item">
-<img src="${s.img}" alt="${s.name}" onerror="this.style.opacity='.3'">
-<div class="r-name" style="color:${RARITY[s.rarity].color}">${s.name}</div>
-</div>`).join("");
+rouletteTrack.innerHTML = preview.map(s => {
+const emoji = TYPE_EMOJI[s.type] || "📦";
+const color = RARITY[s.rarity].color;
+const uniq = "r_" + Math.random().toString(36).slice(2, 9);
+return `<div class="roulette-item">
+<img src="${s.img}" alt="" style="display:none;width:56px;height:56px;object-fit:contain;margin-bottom:2px" onload="this.style.display='block';document.getElementById('${uniq}').style.display='none'" onerror="this.remove()">
+<span id="${uniq}" class="r-emoji" style="color:${color}">${emoji}</span>
+<div class="r-name" style="color:${color}">${s.name}</div>
+</div>`;
+}).join("");
 rouletteTrack.style.transition = "none";
 rouletteTrack.style.transform = "translateX(0)";
 
@@ -403,7 +435,6 @@ state.coins -= currentCase.price;
 render();
 await saveState({ coins: state.coins });
 
-// Вибір переможця
 let winner;
 if (currentCase.id === "coffin") winner = pickSkinCoffin();
 else {
@@ -411,14 +442,18 @@ const boost = CASES.find(c => c.id === currentCase.id)?.rarityBoost || 0;
 winner = pickSkinByRarity(boost);
 }
 
-// Формуємо рулетку з переможцем на 25 позиції
 const items = [];
 for (let i = 0; i < 30; i++) items.push(i === 25 ? winner : pickSkinByRarity());
-rouletteTrack.innerHTML = items.map(s => `
-<div class="roulette-item">
-<img src="${s.img}" alt="${s.name}" onerror="this.style.opacity='.3'">
-<div class="r-name" style="color:${RARITY[s.rarity].color}">${s.name}</div>
-</div>`).join("");
+rouletteTrack.innerHTML = items.map(s => {
+const emoji = TYPE_EMOJI[s.type] || "📦";
+const color = RARITY[s.rarity].color;
+const uniq = "r_" + Math.random().toString(36).slice(2, 9);
+return `<div class="roulette-item">
+<img src="${s.img}" alt="" style="display:none;width:56px;height:56px;object-fit:contain;margin-bottom:2px" onload="this.style.display='block';document.getElementById('${uniq}').style.display='none'" onerror="this.remove()">
+<span id="${uniq}" class="r-emoji" style="color:${color}">${emoji}</span>
+<div class="r-name" style="color:${color}">${s.name}</div>
+</div>`;
+}).join("");
 
 rouletteTrack.style.transition = "none";
 rouletteTrack.style.transform = "translateX(0)";
@@ -432,44 +467,55 @@ rouletteTrack.style.transform = `translateX(${targetX}px)`;
 
 setTimeout(async () => {
 const r = RARITY[winner.rarity];
+const emoji = TYPE_EMOJI[winner.type] || "📦";
+const uniqWin = "win_" + Math.random().toString(36).slice(2, 9);
 resultBlock.style.display = "block";
 resultBlock.innerHTML = `
 <div class="win-item" style="color:${r.color}">
-<img src="${winner.img}" alt="${winner.name}" onerror="this.style.opacity='.3'">
+<img src="${winner.img}" alt="" style="display:none;width:140px;height:140px;object-fit:contain" onload="this.style.display='block';document.getElementById('${uniqWin}').style.display='none'" onerror="this.remove()">
+<span id="${uniqWin}" class="w-emoji" style="color:${r.color}">${emoji}</span>
 <div class="w-name" style="color:${r.color}">${winner.name}</div>
 <div class="w-rarity" style="color:${r.color}">${r.name} · ${r.price} 🪙</div>
 </div>
 <button class="btn btn-sell" id="btnSell">💰 Продати за ${r.price} 🪙</button>
+<button class="btn btn-add" id="btnAdd">🎒 Залишити в інвентар</button>
 `;
 document.getElementById("rouletteWrap").style.display = "none";
 btnOpen.style.display = "none";
 
-// Додаємо в інвентар
 state.inventory = state.inventory || [];
-const newItem = { ...winner, rarityName: r.name, rarityColor: r.color, sellPrice: r.price, uid: Date.now() };
-state.inventory.push(newItem);
-await saveState({ inventory: state.inventory });
-render();
+const newItem = { ...winner, rarityName: r.name, rarityColor: r.color, sellPrice: r.price, uid: Date.now() + "_" + Math.random().toString(36).slice(2,6) };
 
 document.getElementById("btnSell").addEventListener("click", async () => {
-const idx = state.inventory.findIndex(it => it.uid === newItem.uid);
-if (idx === -1) return;
 state.coins += r.price;
-state.inventory.splice(idx, 1);
-await saveState({ coins: state.coins, inventory: state.inventory });
+await saveState({ coins: state.coins });
 render();
 showToast(`💰 Продано за ${r.price} 🪙!`);
 modal.classList.remove("show");
+isProcessing = false;
 });
 
-setTimeout(() => {
-if (modal.classList.contains("show") && document.getElementById("btnSell")) {
+document.getElementById("btnAdd").addEventListener("click", async () => {
+state.inventory.push(newItem);
+await saveState({ inventory: state.inventory });
+render();
+showToast(`🎒 ${winner.name} в інвентарі!`);
+modal.classList.remove("show");
+isProcessing = false;
+});
+
+// Автозакриття через 10 сек (додає в інвентар)
+setTimeout(async () => {
+if (modal.classList.contains("show") && document.getElementById("btnAdd")) {
+state.inventory.push(newItem);
+await saveState({ inventory: state.inventory });
+render();
 showToast(`🎁 ${winner.name} додано в інвентар`);
 modal.classList.remove("show");
-}
-}, 8000);
-
 isProcessing = false;
+}
+}, 10000);
+
 render();
 }, 4200);
 }
@@ -481,21 +527,39 @@ if (!isProcessing) modal.classList.remove("show");
 
 // ============ ЗБЕРЕЖЕННЯ ============
 async function saveState(fields) {
+if (!firebaseReady || !db) {
+// Офлайн-режим: зберігаємо в localStorage
 try {
-await updateDoc(doc(db, "players", userId), fields);
-} catch (e) {
-console.error(e);
-showToast("Помилка збереження");
+const local = JSON.parse(localStorage.getItem("flame_state") || "{}");
+Object.assign(local, fields);
+localStorage.setItem("flame_state", JSON.stringify(local));
+} catch(e){}
+return;
 }
+try { await fsUpdateDoc(fsDoc(db, "players", userId), fields); }
+catch (e) { console.error(e); }
 }
 
 // ============ ІНІЦІАЛІЗАЦІЯ ============
 async function initUser() {
-const userRef = doc(db, "players", userId);
-const snap = await getDoc(userRef);
+// Спочатку пробуємо localStorage
+try {
+const local = JSON.parse(localStorage.getItem("flame_state") || "null");
+if (local) {
+state.coins = local.coins ?? state.coins;
+state.stars = local.stars ?? state.stars;
+state.inventory = local.inventory || state.inventory;
+}
+} catch(e){}
+
+if (!firebaseReady || !db) { render(); return; }
+
+try {
+const userRef = fsDoc(db, "players", userId);
+const snap = await fsGetDoc(userRef);
 if (!snap.exists()) {
-const np = { coins: 100, stars: 50, name: fullName, inventory: [], photoUrl: userPhotoUrl || "", createdAt: serverTimestamp() };
-await setDoc(userRef, np);
+const np = { coins: 100, stars: 50, name: fullName, inventory: [], photoUrl: userPhotoUrl || "", createdAt: fsServerTimestamp() };
+await fsSetDoc(userRef, np);
 state = { ...np };
 } else {
 const d = snap.data();
@@ -507,7 +571,7 @@ inventory: d.inventory || []
 };
 }
 if (userDocUnsub) userDocUnsub();
-userDocUnsub = onSnapshot(userRef, (ds) => {
+userDocUnsub = fsOnSnapshot(userRef, (ds) => {
 if (!ds.exists()) return;
 const d = ds.data();
 state.coins = d.coins ?? state.coins;
@@ -517,12 +581,16 @@ state.name = d.name || state.name;
 render();
 });
 render();
+} catch (e) {
+console.warn("Firestore недоступний:", e);
+render();
+}
 }
 
 async function init() {
 try {
 await initUser();
-setTimeout(() => loadingScreen.classList.add("hidden"), 400);
+setTimeout(() => loadingScreen.classList.add("hidden"), 300);
 render();
 } catch (e) {
 console.error("ПОМИЛКА:", e);
