@@ -1,1 +1,537 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Мусор Дроп</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#e8edf5;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:12px}
+#app{max-width:520px;width:100%;display:flex;flex-direction:column;gap:12px;padding-bottom:30px}
 
+.profile-card{background:linear-gradient(135deg,#1a1f2b,#141821);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.6);border:1px solid #2a3140}
+.avatar-wrap{position:relative;width:52px;height:52px;flex-shrink:0}
+.avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;overflow:hidden;border:2px solid rgba(255,255,255,.1);box-shadow:0 0 14px rgba(59,130,246,.5)}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.avatar-letter{font-size:22px;font-weight:700}
+.profile-info{flex:1;min-width:0}
+.profile-name{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-id{font-size:11px;color:#6b7a90;margin-top:2px}
+
+.resources{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.res-item{background:#1a1f2b;border-radius:14px;padding:10px 4px;text-align:center;border:1px solid #2a3140;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.res-emoji{font-size:20px;display:block;margin-bottom:2px}
+.res-value{font-size:17px;font-weight:700}
+.res-label{font-size:9px;color:#6b7a90;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.coins .res-value{color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,.5)}
+.stars .res-value{color:#f59e0b;text-shadow:0 0 10px rgba(245,158,11,.5)}
+.items .res-value{color:#a78bfa;text-shadow:0 0 10px rgba(167,139,250,.5)}
+
+.section-title{font-size:14px;font-weight:700;color:#fbbf24;text-align:center;letter-spacing:1px;text-transform:uppercase;margin:6px 0 2px;text-shadow:0 0 12px rgba(251,191,36,.4)}
+
+.cases-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.case-card{background:linear-gradient(180deg,#1a1f2b,#12161f);border-radius:14px;padding:10px 6px;text-align:center;border:1px solid #2a3140;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.case-card:active{transform:scale(.95)}
+.case-card:hover{border-color:#fbbf24;box-shadow:0 0 20px rgba(251,191,36,.3)}
+.case-card.coffin{border-color:#dc2626;background:linear-gradient(180deg,#2a0f0f,#150707);padding:16px 12px}
+.case-card.coffin:hover{border-color:#ef4444;box-shadow:0 0 24px rgba(220,38,38,.5)}
+.case-img{width:70px;height:70px;margin:0 auto 6px;display:block;object-fit:contain;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
+.case-card.coffin .case-img{width:100px;height:100px}
+.case-name{font-size:11px;font-weight:700;color:#e8edf5;margin-bottom:2px}
+.case-price{font-size:10px;color:#fbbf24;font-weight:600}
+.case-card.coffin .case-price{color:#ef4444;font-size:12px;margin-top:4px}
+.case-badge{position:absolute;top:4px;right:4px;font-size:9px;background:#dc2626;color:#fff;padding:2px 6px;border-radius:8px;font-weight:700}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.modal.show{display:flex}
+.modal-content{background:linear-gradient(180deg,#1a1f2b,#0f1219);border-radius:22px;padding:20px;max-width:440px;width:100%;border:1px solid #2a3140;box-shadow:0 20px 60px rgba(0,0,0,.9);text-align:center;animation:popIn .3s ease}
+@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-title{font-size:18px;font-weight:800;margin-bottom:14px;color:#fbbf24;letter-spacing:.5px}
+
+.roulette-wrap{position:relative;height:120px;margin-bottom:16px;border-radius:14px;overflow:hidden;background:#0a0c10;border:2px solid #2a3140}
+.roulette-track{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;gap:6px;padding:0 20px}
+.roulette-item{flex-shrink:0;width:90px;height:90px;background:#1a1f2b;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;border:2px solid #2a3140}
+.roulette-item img{width:56px;height:56px;object-fit:contain;margin-bottom:2px}
+.roulette-item .r-name{font-size:8px;font-weight:600;text-align:center;line-height:1.1;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.roulette-pointer{position:absolute;top:0;left:50%;transform:translateX(-50%);width:3px;height:100%;background:linear-gradient(180deg,#fbbf24,#ef4444);box-shadow:0 0 20px #fbbf24;z-index:10}
+.roulette-pointer::before{content:"▼";position:absolute;top:-8px;left:50%;transform:translateX(-50%);color:#fbbf24;font-size:16px;filter:drop-shadow(0 0 6px #fbbf24)}
+
+.win-item{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:14px}
+.win-item img{width:140px;height:140px;object-fit:contain;filter:drop-shadow(0 0 24px currentColor)}
+.win-item .w-name{font-size:18px;font-weight:800;letter-spacing:.5px}
+.win-item .w-rarity{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:3px 12px;border-radius:20px;background:rgba(255,255,255,.08)}
+
+.btn{width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;letter-spacing:.3px}
+.btn:active:not(:disabled){transform:scale(.97)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-open{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;box-shadow:0 4px 20px rgba(245,158,11,.5)}
+.btn-close{background:#2a3140;color:#e8edf5;margin-top:8px}
+.btn-sell{background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 4px 20px rgba(16,185,129,.4)}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a1f2b;border:1px solid #2a3140;border-radius:12px;padding:10px 18px;font-size:13px;font-weight:500;color:#e8edf5;box-shadow:0 8px 30px rgba(0,0,0,.7);z-index:2000;transition:all .35s;opacity:0;max-width:90%;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+.loading{position:fixed;inset:0;background:#0a0c10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:3000;transition:opacity .5s}
+.loading.hidden{opacity:0;pointer-events:none}
+.spinner{width:44px;height:44px;border:4px solid #2a3140;border-top-color:#f59e0b;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:#6b7a90}
+
+.inventory{background:#1a1f2b;border-radius:18px;padding:14px;border:1px solid #2a3140;box-shadow:0 4px 18px rgba(0,0,0,.5)}
+.inv-title{font-size:13px;font-weight:700;color:#a78bfa;text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:220px;overflow-y:auto}
+.inv-item{background:#12161f;border-radius:8px;padding:6px 4px;text-align:center;border:1px solid #2a3140;position:relative}
+.inv-item img{width:40px;height:40px;object-fit:contain;display:block;margin:0 auto 2px}
+.inv-item .inv-name{font-size:8px;font-weight:600;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inv-empty{text-align:center;color:#6b7a90;font-size:12px;padding:12px 0}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div class="profile-card">
+<div class="avatar-wrap"><div class="avatar" id="avatarBox"><span class="avatar-letter" id="avatarLetter">?</span></div></div>
+<div class="profile-info">
+<div class="profile-name" id="profileName">Гравець</div>
+<div class="profile-id" id="profileId">ID: ---</div>
+</div>
+</div>
+
+<div class="resources">
+<div class="res-item coins"><span class="res-emoji">🪙</span><div class="res-value" id="coinsValue">0</div><div class="res-label">Монети</div></div>
+<div class="res-item stars"><span class="res-emoji">⭐</span><div class="res-value" id="starsValue">0</div><div class="res-label">Зірки</div></div>
+<div class="res-item items"><span class="res-emoji">🎒</span><div class="res-value" id="itemsValue">0</div><div class="res-label">Предмети</div></div>
+</div>
+
+<div class="section-title">📦 Ящики (25)</div>
+<div class="cases-grid" id="casesGrid"></div>
+
+<div class="section-title">⚰️ Ексклюзив</div>
+<div id="coffinSlot"></div>
+
+<div class="inventory">
+<div class="inv-title">🎒 Інвентар</div>
+<div class="inv-grid" id="invGrid"><div class="inv-empty" style="grid-column:1/-1">Порожньо</div></div>
+</div>
+
+</div>
+
+<div class="modal" id="modal">
+<div class="modal-content">
+<div class="modal-title" id="modalTitle">Відкриття ящика</div>
+<div class="roulette-wrap" id="rouletteWrap">
+<div class="roulette-track" id="rouletteTrack"></div>
+<div class="roulette-pointer"></div>
+</div>
+<div id="resultBlock" style="display:none"></div>
+<button class="btn btn-open" id="btnOpen" style="display:none">🔓 Відкрити</button>
+<button class="btn btn-close" id="btnCloseModal">Закрити</button>
+</div>
+</div>
+
+<div class="loading" id="loadingScreen">
+<div class="spinner"></div>
+<div class="loading-text">Завантаження...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+apiKey: "AIzaSyC53lY7Byyx0YWADr0BRlR-iWKIxF3SR-M",
+authDomain: "fire-24f1d.firebaseapp.com",
+projectId: "fire-24f1d",
+storageBucket: "fire-24f1d.firebasestorage.app",
+messagingSenderId: "710685292251",
+appId: "1:710685292251:web:4bc12ffc66cf0917463efe"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+let userId = "test_user_123", userName = "Тестовий", userLastName = "", userPhotoUrl = "";
+if (tg?.initDataUnsafe?.user) {
+const u = tg.initDataUnsafe.user;
+userId = String(u.id);
+userName = u.first_name || "Гравець";
+userLastName = u.last_name || "";
+userPhotoUrl = u.photo_url || "";
+}
+const fullName = (userName + (userLastName ? " " + userLastName : "")).trim();
+
+// ============ ЕКОНОМІКА ============
+const CASE_PRICE = 5;
+const COFFIN_PRICE = 50;
+
+let state = { coins: 100, stars: 50, name: fullName, inventory: [] };
+let currentCase = null, isProcessing = false, userDocUnsub = null;
+
+const $ = (id) => document.getElementById(id);
+const avatarBox = $("avatarBox"), avatarLetter = $("avatarLetter");
+const profileName = $("profileName"), profileId = $("profileId");
+const coinsValue = $("coinsValue"), starsValue = $("starsValue"), itemsValue = $("itemsValue");
+const casesGrid = $("casesGrid"), coffinSlot = $("coffinSlot"), invGrid = $("invGrid");
+const modal = $("modal"), modalTitle = $("modalTitle"), rouletteTrack = $("rouletteTrack");
+const resultBlock = $("resultBlock"), btnOpen = $("btnOpen"), btnCloseModal = $("btnCloseModal");
+const loadingScreen = $("loadingScreen"), toastEl = $("toast");
+
+function showToast(msg, d = 2400) {
+toastEl.textContent = msg;
+toastEl.classList.add("show");
+clearTimeout(toastEl._t);
+toastEl._t = setTimeout(() => toastEl.classList.remove("show"), d);
+}
+
+// ============ РАРІТЕТ ============
+const RARITY = {
+common:    { name: "Звичайний",   color: "#9ca3af", weight: 50,   price: 1 },
+uncommon:  { name: "Незвичайний", color: "#3b82f6", weight: 25,   price: 3 },
+rare:      { name: "Рідкісний",   color: "#8b5cf6", weight: 15,   price: 8 },
+mythical:  { name: "Міфічний",    color: "#ec4899", weight: 7,    price: 25 },
+legendary: { name: "Легендарний", color: "#f59e0b", weight: 2.5,  price: 80 },
+ancient:   { name: "Древній",     color: "#ef4444", weight: 0.5,  price: 300 }
+};
+
+// ============ 150 СКІНІВ (50 + 50 + 50) ============
+const SKINS = [];
+
+// 🗡️ НОЖІ (50)
+const KNIFE_NAMES = ["Керамбіт","Бабочка","Штих","Танто","Кунай","Класік","Фліп","Хантер","Боуї","Номад",
+"Пушдаг","Талон","Урсус","Наваха","Стілетто","Паракорд","Скелет","Сурж","Кулі","Мясник",
+"Кобра","Скорпіон","Фантом","Тінь","Ворон","Клинок","Лезо","Різак","Кинджал","Шабля",
+"Ятаган","Катана","Вакізаші","Танто-Про","Гарпун","Спис","Сокира","Тесак","Мачете","Кирка",
+"Зубр","Вовк","Ведмідь","Лев","Тигр","Дракон","Фенікс","Орел","Яструб","Грифон"];
+for (let i = 1; i <= 50; i++) {
+const rar = i <= 15 ? "common" : i <= 25 ? "uncommon" : i <= 35 ? "rare" : i <= 42 ? "mythical" : i <= 47 ? "legendary" : "ancient";
+SKINS.push({
+id: `knife_${i}`, name: `Ніж «${KNIFE_NAMES[i-1]}»`, type: "knife",
+img: `textures/skins/knife_${String(i).padStart(2,'0')}.png`, rarity: rar
+});
+}
+
+// 🧤 РУКАВИЧКИ (50)
+const GLOVE_NAMES = ["Спецназ","Кривава","Дракон","Вогняні","Кібер","Неон","Хром","Золоті","Срібні","Бронзові",
+"Тіньові","Льодові","Отруйні","Космічні","Вулканічні","Штормові","Грозові","Кристальні","Діамантові","Рубінові",
+"Смарагдові","Сапфірові","Аметистові","Топазові","Оніксові","Мідні","Сталеві","Титанові","Платинові","Іридиєві",
+"Магмові","Пекельні","Демонічні","Янгольські","Божественні","Прокляті","Священні","Легендарні","Міфічні","Древні",
+"Королівські","Імператорські","Царські","Фараонові","Богатирські","Козацькі","Січові","Характерні","Військові","Спеціальні"];
+for (let i = 1; i <= 50; i++) {
+const rar = i <= 15 ? "common" : i <= 25 ? "uncommon" : i <= 35 ? "rare" : i <= 42 ? "mythical" : i <= 47 ? "legendary" : "ancient";
+SKINS.push({
+id: `gloves_${i}`, name: `Рукавички «${GLOVE_NAMES[i-1]}»`, type: "gloves",
+img: `textures/skins/gloves_${String(i).padStart(2,'0')}.png`, rarity: rar
+});
+}
+
+// 🔫 ПУШКИ (50)
+const GUN_NAMES = ["АК-47","М4А4","M4A1-S","AWP","SSG 08","SCAR-20","G3SG1","FAMAS","Galil AR","AUG",
+"SG 553","MP9","MAC-10","MP7","MP5-SD","UMP-45","P90","PP-Bizon","Nova","XM1014",
+"Mag-7","Sawed-Off","M249","Negev","Desert Eagle","R8 Revolver","Glock-18","USP-S","P2000","P250",
+"Five-SeveN","Tec-9","CZ75-Auto","Dual Berettas","Ballista","AK Redline","M4 Asiimov","AWP Dragon Lore","AWP Medusa","AWP Gungnir",
+"AK Fire Serpent","M4 Howl","AWP Wildfire","AK Vulcan","M4 Hyper Beast","AWP Neo-Noir","AK Neon Rider","M4 Neo-Noir","AWP Fever Dream","AK Bloodsport"];
+for (let i = 1; i <= 50; i++) {
+const rar = i <= 15 ? "common" : i <= 25 ? "uncommon" : i <= 35 ? "rare" : i <= 42 ? "mythical" : i <= 47 ? "legendary" : "ancient";
+SKINS.push({
+id: `gun_${i}`, name: `${GUN_NAMES[i-1]}`, type: "gun",
+img: `textures/skins/gun_${String(i).padStart(2,'0')}.png`, rarity: rar
+});
+}
+
+// ============ 25 ЯЩИКІВ ============
+const CASE_NAMES = ["Дерев'яний","Залізний","Сталевий","Бронзовий","Срібний","Золотий","Платиновий","Алмазний","Кристальний","Льодовий",
+"Вогняний","Грозовий","Тіньовий","Смарагдовий","Рубіновий","Сапфіровий","Аметистовий","Космічний","Вулканічний","Океанський",
+"Лісовий","Пустельний","Арктичний","Королівський","Імператорський"];
+const CASES = [];
+for (let i = 1; i <= 25; i++) {
+CASES.push({
+id: `case_${i}`, name: `Ящик «${CASE_NAMES[i-1]}»`,
+img: `textures/cases/case_${String(i).padStart(2,'0')}.png`,
+price: CASE_PRICE,
+rarityBoost: i <= 5 ? 0 : i <= 10 ? 1 : i <= 15 ? 2 : i <= 20 ? 3 : i <= 24 ? 4 : 5
+});
+}
+
+// ============ РАНДОМ ============
+function pickSkinByRarity(boost = 0) {
+const keys = Object.keys(RARITY);
+// boost зсуває шанси в бік рідкісних
+const total = keys.reduce((s, k) => s + RARITY[k].weight, 0);
+let r = Math.random() * total;
+let chosen = "common";
+for (const k of keys) {
+if (r < RARITY[k].weight) { chosen = k; break; }
+r -= RARITY[k].weight;
+}
+// Застосовуємо boost — якщо випало common, є шанс підняти рівень
+if (boost > 0 && chosen === "common") {
+const upgrade = Math.random();
+if (upgrade < 0.05 * boost) chosen = "uncommon";
+else if (upgrade < 0.02 * boost) chosen = "rare";
+}
+const pool = SKINS.filter(s => s.rarity === chosen);
+return pool.length ? pool[Math.floor(Math.random() * pool.length)] : SKINS[0];
+}
+
+function pickSkinCoffin() {
+// Гробовець: ексклюзивні топові скіни
+const roll = Math.random();
+if (roll < 0.02) return SKINS.filter(s => s.rarity === "ancient")[Math.floor(Math.random()*3)];
+if (roll < 0.15) return SKINS.filter(s => s.rarity === "legendary")[Math.floor(Math.random()*5)];
+if (roll < 0.45) return SKINS.filter(s => s.rarity === "mythical")[Math.floor(Math.random()*8)];
+return pickSkinByRarity(3);
+}
+
+// ============ АВАТАР ============
+function stringToGradient(str) {
+let hash = 0;
+for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+const h1 = Math.abs(hash) % 360, h2 = (h1 + 40) % 360;
+return `linear-gradient(135deg, hsl(${h1},75%,55%), hsl(${h2},80%,45%))`;
+}
+function setAvatar() {
+const letter = (state.name || "?").charAt(0).toUpperCase();
+const existingImg = avatarBox.querySelector("img");
+if (existingImg) existingImg.remove();
+if (userPhotoUrl) {
+const img = document.createElement("img");
+img.src = userPhotoUrl;
+img.onerror = () => { img.remove(); avatarLetter.style.display = "flex"; avatarLetter.textContent = letter; avatarBox.style.background = stringToGradient(state.name || "?"); };
+avatarBox.appendChild(img);
+avatarLetter.style.display = "none";
+} else {
+avatarLetter.style.display = "flex"; avatarLetter.textContent = letter;
+avatarBox.style.background = stringToGradient(state.name || "?");
+}
+}
+
+// ============ РЕНДЕР ============
+function render() {
+setAvatar();
+profileName.textContent = state.name || "Гравець";
+profileId.textContent = "ID: " + userId;
+coinsValue.textContent = state.coins;
+starsValue.textContent = state.stars;
+itemsValue.textContent = (state.inventory || []).length;
+renderCases();
+renderInventory();
+}
+
+function renderCases() {
+casesGrid.innerHTML = CASES.map(c => {
+const badge = c.rarityBoost >= 4 ? '<div class="case-badge">TOP</div>' : '';
+return `<div class="case-card" data-case="${c.id}" data-price="${c.price}">
+${badge}
+<img class="case-img" src="${c.img}" alt="${c.name}" onerror="this.style.opacity='.3'">
+<div class="case-name">${c.name}</div>
+<div class="case-price">${c.price} 🪙</div>
+</div>`;
+}).join("");
+
+casesGrid.querySelectorAll(".case-card").forEach(el => {
+el.addEventListener("click", () => openCaseModal(el.dataset.case, parseInt(el.dataset.price, 10)));
+});
+
+coffinSlot.innerHTML = `
+<div class="case-card coffin" data-case="coffin" data-price="${COFFIN_PRICE}">
+<div class="case-badge">🔥 ТОП</div>
+<img class="case-img" src="textures/coffin/coffin.png" alt="Гробовець" onerror="this.style.opacity='.3'">
+<div class="case-name" style="font-size:14px">⚰️ Гробовець</div>
+<div class="case-price">${COFFIN_PRICE} 🪙 · ексклюзивні скіни</div>
+</div>
+`;
+coffinSlot.querySelector(".case-card").addEventListener("click", () => openCaseModal("coffin", COFFIN_PRICE));
+}
+
+function renderInventory() {
+const inv = state.inventory || [];
+if (!inv.length) {
+invGrid.innerHTML = '<div class="inv-empty" style="grid-column:1/-1">Порожньо</div>';
+return;
+}
+const items = inv.slice(-12).reverse();
+invGrid.innerHTML = items.map(it => `
+<div class="inv-item" title="${it.name}" style="border-color:${it.rarityColor || '#2a3140'}">
+<img src="${it.img}" alt="${it.name}" onerror="this.style.opacity='.3'">
+<div class="inv-name" style="color:${it.rarityColor || '#e8edf5'}">${it.name}</div>
+</div>
+`).join("");
+}
+
+// ============ МОДАЛКА ============
+function openCaseModal(caseId, price) {
+if (!state.inventory) state.inventory = [];
+if (state.coins < price) {
+showToast(`❌ Недостатньо монет! Потрібно ${price} 🪙`);
+return;
+}
+currentCase = { id: caseId, price };
+modalTitle.textContent = caseId === "coffin" ? "⚰️ Гробовець" : "📦 Відкриття ящика";
+
+const preview = [];
+for (let i = 0; i < 30; i++) preview.push(pickSkinByRarity());
+rouletteTrack.innerHTML = preview.map(s => `
+<div class="roulette-item">
+<img src="${s.img}" alt="${s.name}" onerror="this.style.opacity='.3'">
+<div class="r-name" style="color:${RARITY[s.rarity].color}">${s.name}</div>
+</div>`).join("");
+rouletteTrack.style.transition = "none";
+rouletteTrack.style.transform = "translateX(0)";
+
+resultBlock.style.display = "none";
+btnOpen.style.display = "block";
+document.getElementById("rouletteWrap").style.display = "block";
+btnOpen.disabled = false;
+btnOpen.textContent = `🔓 Відкрити за ${price} 🪙`;
+modal.classList.add("show");
+}
+
+async function openCurrentCase() {
+if (isProcessing || !currentCase) return;
+if (state.coins < currentCase.price) { showToast("❌ Недостатньо монет!"); return; }
+
+isProcessing = true;
+btnOpen.disabled = true;
+btnOpen.textContent = "🎰 Крутиться...";
+
+state.coins -= currentCase.price;
+render();
+await saveState({ coins: state.coins });
+
+// Вибір переможця
+let winner;
+if (currentCase.id === "coffin") winner = pickSkinCoffin();
+else {
+const boost = CASES.find(c => c.id === currentCase.id)?.rarityBoost || 0;
+winner = pickSkinByRarity(boost);
+}
+
+// Формуємо рулетку з переможцем на 25 позиції
+const items = [];
+for (let i = 0; i < 30; i++) items.push(i === 25 ? winner : pickSkinByRarity());
+rouletteTrack.innerHTML = items.map(s => `
+<div class="roulette-item">
+<img src="${s.img}" alt="${s.name}" onerror="this.style.opacity='.3'">
+<div class="r-name" style="color:${RARITY[s.rarity].color}">${s.name}</div>
+</div>`).join("");
+
+rouletteTrack.style.transition = "none";
+rouletteTrack.style.transform = "translateX(0)";
+void rouletteTrack.offsetWidth;
+
+const itemW = 96;
+const containerW = document.getElementById("rouletteWrap").clientWidth;
+const targetX = -(25 * itemW) + (containerW / 2) - (itemW / 2);
+rouletteTrack.style.transition = "transform 4s cubic-bezier(.15,.85,.3,1)";
+rouletteTrack.style.transform = `translateX(${targetX}px)`;
+
+setTimeout(async () => {
+const r = RARITY[winner.rarity];
+resultBlock.style.display = "block";
+resultBlock.innerHTML = `
+<div class="win-item" style="color:${r.color}">
+<img src="${winner.img}" alt="${winner.name}" onerror="this.style.opacity='.3'">
+<div class="w-name" style="color:${r.color}">${winner.name}</div>
+<div class="w-rarity" style="color:${r.color}">${r.name} · ${r.price} 🪙</div>
+</div>
+<button class="btn btn-sell" id="btnSell">💰 Продати за ${r.price} 🪙</button>
+`;
+document.getElementById("rouletteWrap").style.display = "none";
+btnOpen.style.display = "none";
+
+// Додаємо в інвентар
+state.inventory = state.inventory || [];
+const newItem = { ...winner, rarityName: r.name, rarityColor: r.color, sellPrice: r.price, uid: Date.now() };
+state.inventory.push(newItem);
+await saveState({ inventory: state.inventory });
+render();
+
+document.getElementById("btnSell").addEventListener("click", async () => {
+const idx = state.inventory.findIndex(it => it.uid === newItem.uid);
+if (idx === -1) return;
+state.coins += r.price;
+state.inventory.splice(idx, 1);
+await saveState({ coins: state.coins, inventory: state.inventory });
+render();
+showToast(`💰 Продано за ${r.price} 🪙!`);
+modal.classList.remove("show");
+});
+
+setTimeout(() => {
+if (modal.classList.contains("show") && document.getElementById("btnSell")) {
+showToast(`🎁 ${winner.name} додано в інвентар`);
+modal.classList.remove("show");
+}
+}, 8000);
+
+isProcessing = false;
+render();
+}, 4200);
+}
+
+btnOpen.addEventListener("click", openCurrentCase);
+btnCloseModal.addEventListener("click", () => {
+if (!isProcessing) modal.classList.remove("show");
+});
+
+// ============ ЗБЕРЕЖЕННЯ ============
+async function saveState(fields) {
+try {
+await updateDoc(doc(db, "players", userId), fields);
+} catch (e) {
+console.error(e);
+showToast("Помилка збереження");
+}
+}
+
+// ============ ІНІЦІАЛІЗАЦІЯ ============
+async function initUser() {
+const userRef = doc(db, "players", userId);
+const snap = await getDoc(userRef);
+if (!snap.exists()) {
+const np = { coins: 100, stars: 50, name: fullName, inventory: [], photoUrl: userPhotoUrl || "", createdAt: serverTimestamp() };
+await setDoc(userRef, np);
+state = { ...np };
+} else {
+const d = snap.data();
+state = {
+coins: d.coins ?? 100,
+stars: d.stars ?? 50,
+name: d.name || fullName,
+inventory: d.inventory || []
+};
+}
+if (userDocUnsub) userDocUnsub();
+userDocUnsub = onSnapshot(userRef, (ds) => {
+if (!ds.exists()) return;
+const d = ds.data();
+state.coins = d.coins ?? state.coins;
+state.stars = d.stars ?? state.stars;
+state.inventory = d.inventory || state.inventory;
+state.name = d.name || state.name;
+render();
+});
+render();
+}
+
+async function init() {
+try {
+await initUser();
+setTimeout(() => loadingScreen.classList.add("hidden"), 400);
+render();
+} catch (e) {
+console.error("ПОМИЛКА:", e);
+loadingScreen.querySelector(".loading-text").textContent = "Помилка: " + e.message;
+}
+}
+init();
+
+window.addEventListener("beforeunload", () => { if (userDocUnsub) userDocUnsub(); });
+</script>
+</body>
+</html>
