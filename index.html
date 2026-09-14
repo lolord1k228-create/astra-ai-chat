@@ -3,104 +3,187 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Мусор Дроп</title>
+<title>Musor Drop</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
-body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#e8edf5;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:12px}
-#app{max-width:520px;width:100%;display:flex;flex-direction:column;gap:12px;padding-bottom:30px}
-.profile-card{background:linear-gradient(135deg,#1a1f2b,#141821);border-radius:18px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.6);border:1px solid #2a3140}
-.avatar-wrap{position:relative;width:52px;height:52px;flex-shrink:0}
-.avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;overflow:hidden;border:2px solid rgba(255,255,255,.1);box-shadow:0 0 14px rgba(59,130,246,.5)}
+body{background:#0a0a12;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#e8edf5;min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:10px;padding-bottom:90px}
+#app{max-width:520px;width:100%;display:flex;flex-direction:column;gap:12px}
+
+.top-bar{background:linear-gradient(90deg,#1a0f2e,#241642);border-radius:16px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(139,92,246,.15);border:1px solid #3a2a5a}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{font-size:24px;filter:drop-shadow(0 0 8px #a855f7)}
+.balance-box{background:#0f0a1e;border-radius:12px;padding:6px 14px;display:flex;align-items:center;gap:8px;border:1px solid #3a2a5a}
+.balance-val{font-size:15px;font-weight:800;color:#fff}
+.balance-cur{font-size:12px;color:#a855f7;font-weight:700}
+.btn-promo{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;padding:8px 12px;color:#1a0f2e;font-size:12px;font-weight:800;cursor:pointer;letter-spacing:.3px;box-shadow:0 0 12px rgba(245,158,11,.4)}
+.btn-promo:active{transform:scale(.95)}
+
+.profile-row{display:flex;align-items:center;gap:12px;padding:4px 4px}
+.avatar-wrap{position:relative;width:54px;height:54px;flex-shrink:0}
+.avatar{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;overflow:hidden;border:2px solid #a855f7;box-shadow:0 0 16px rgba(168,85,247,.6)}
 .avatar img{width:100%;height:100%;object-fit:cover}
 .profile-info{flex:1;min-width:0}
-.profile-name{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.profile-id{font-size:11px;color:#6b7a90;margin-top:2px}
-.resources{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.res-item{background:#1a1f2b;border-radius:14px;padding:12px 6px;text-align:center;border:1px solid #2a3140;box-shadow:0 2px 10px rgba(0,0,0,.4)}
-.res-emoji{font-size:22px;display:block;margin-bottom:2px}
-.res-value{font-size:19px;font-weight:700}
-.res-label{font-size:9px;color:#6b7a90;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-.coins .res-value{color:#fbbf24;text-shadow:0 0 10px rgba(251,191,36,.5)}
-.items .res-value{color:#a78bfa;text-shadow:0 0 10px rgba(167,139,250,.5)}
-.section-title{font-size:14px;font-weight:700;color:#fbbf24;text-align:center;letter-spacing:1px;text-transform:uppercase;margin:6px 0 2px;text-shadow:0 0 12px rgba(251,191,36,.4)}
-.cases-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.case-card{background:linear-gradient(180deg,#1a1f2b,#12161f);border-radius:14px;padding:10px 6px;text-align:center;border:1px solid #2a3140;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
-.case-card:active{transform:scale(.95)}
-.case-card:hover{border-color:#fbbf24;box-shadow:0 0 20px rgba(251,191,36,.3)}
-.case-card.coffin{border-color:#dc2626;background:linear-gradient(180deg,#2a0f0f,#150707);padding:16px 12px}
-.case-card.coffin:hover{border-color:#ef4444;box-shadow:0 0 24px rgba(220,38,38,.5)}
-.case-img{width:64px;height:64px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:40px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.6))}
-.case-card.coffin .case-img{width:100px;height:100px;font-size:64px}
-.case-name{font-size:10px;font-weight:700;color:#e8edf5;margin-bottom:2px;line-height:1.2}
-.case-price{font-size:11px;color:#fbbf24;font-weight:700}
-.case-card.coffin .case-price{color:#ef4444;font-size:13px;margin-top:4px}
-.case-badge{position:absolute;top:4px;right:4px;font-size:8px;background:#dc2626;color:#fff;padding:2px 5px;border-radius:6px;font-weight:700}
-.case-badge.gold{background:#f59e0b;color:#1a1f2b}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
+.profile-name{font-size:17px;font-weight:800;color:#fff}
+.profile-id{font-size:11px;color:#8b7ba8;margin-top:2px}
+.profile-badge{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;letter-spacing:.5px}
+
+.section-header{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 0 2px}
+.section-header .diamond{color:#a855f7;font-size:12px;text-shadow:0 0 8px #a855f7}
+.section-title{font-size:16px;font-weight:900;color:#fff;letter-spacing:3px;text-transform:uppercase;text-shadow:0 0 12px rgba(168,85,247,.5)}
+
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.tab{background:#15102a;border:1px solid #2a1f45;border-radius:14px;padding:12px;font-size:14px;font-weight:700;color:#8b7ba8;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit}
+.tab.active{background:linear-gradient(135deg,#4c1d95,#7c3aed);color:#fff;border-color:#a855f7;box-shadow:0 0 20px rgba(168,85,247,.4)}
+
+.cases-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.case-card{background:linear-gradient(180deg,#1a1230,#100a22);border-radius:18px;padding:14px 10px;text-align:center;border:1px solid #2a1f45;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.case-card:active{transform:scale(.97)}
+.case-card:hover{border-color:#a855f7;box-shadow:0 0 24px rgba(168,85,247,.4)}
+.case-card.wide{grid-column:span 2;padding:18px 12px}
+.case-card.coffin{border-color:#dc2626;background:linear-gradient(180deg,#2a0f0f,#150707)}
+.case-card.coffin:hover{border-color:#ef4444;box-shadow:0 0 28px rgba(220,38,38,.5)}
+.case-img{width:100%;height:110px;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:8px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.6))}
+.case-card.wide .case-img{height:150px;font-size:90px}
+.case-img img{max-width:100%;max-height:100%;object-fit:contain}
+.case-name{font-size:13px;font-weight:800;color:#fff;margin-bottom:6px;line-height:1.2}
+.case-card.wide .case-name{font-size:16px}
+.case-price{display:inline-flex;align-items:center;gap:4px;background:#0f0a1e;border:1px solid #3a2a5a;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:800;color:#c4b5fd}
+.case-price .cur{color:#a855f7}
+.case-badge{position:absolute;top:8px;right:8px;font-size:9px;background:#7c3aed;color:#fff;padding:3px 7px;border-radius:6px;font-weight:800;letter-spacing:.5px}
+.case-badge.gold{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#1a0f2e}
+.case-badge.red{background:#dc2626}
+
+.inventory-section{display:none}
+.inventory-section.active{display:block}
+.inv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.inv-item{background:linear-gradient(180deg,#1a1230,#100a22);border-radius:12px;padding:10px 6px;text-align:center;border:1px solid #2a1f45;position:relative;cursor:pointer;transition:all .2s}
+.inv-item:active{transform:scale(.96)}
+.inv-item:hover{border-color:#a855f7}
+.inv-icon{width:100%;height:70px;display:flex;align-items:center;justify-content:center;font-size:44px;margin-bottom:4px}
+.inv-icon img{max-width:100%;max-height:100%;object-fit:contain}
+.inv-name{font-size:9px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;min-height:22px}
+.inv-price{margin-top:4px;font-size:10px;font-weight:800;color:#fbbf24;display:flex;align-items:center;justify-content:center;gap:3px}
+.inv-rarity-bar{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 12px 12px}
+.inv-empty{grid-column:1/-1;text-align:center;color:#8b7ba8;font-size:13px;padding:30px 0}
+
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px}
 .modal.show{display:flex}
-.modal-content{background:linear-gradient(180deg,#1a1f2b,#0f1219);border-radius:22px;padding:20px;max-width:440px;width:100%;border:1px solid #2a3140;box-shadow:0 20px 60px rgba(0,0,0,.9);text-align:center;animation:popIn .3s ease}
-@keyframes popIn{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
-.modal-title{font-size:18px;font-weight:800;margin-bottom:14px;color:#fbbf24;letter-spacing:.5px}
-.roulette-wrap{position:relative;height:120px;margin-bottom:16px;border-radius:14px;overflow:hidden;background:#0a0c10;border:2px solid #2a3140}
+.modal-content{background:linear-gradient(180deg,#1a1230,#0f0a1e);border-radius:24px;padding:20px;max-width:440px;width:100%;border:1px solid #3a2a5a;box-shadow:0 20px 60px rgba(139,92,246,.4);text-align:center;animation:popIn .3s ease}
+@keyframes popIn{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-title{font-size:16px;font-weight:900;margin-bottom:14px;color:#fff;letter-spacing:2px;text-transform:uppercase;text-shadow:0 0 12px rgba(168,85,247,.5)}
+
+.roulette-wrap{position:relative;height:130px;margin-bottom:16px;border-radius:16px;overflow:hidden;background:#0a0616;border:2px solid #3a2a5a}
 .roulette-track{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;gap:6px;padding:0 20px}
-.roulette-item{flex-shrink:0;width:90px;height:90px;background:#1a1f2b;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;border:2px solid #2a3140}
-.roulette-item .r-emoji{font-size:38px;margin-bottom:2px;line-height:1}
-.roulette-item .r-name{font-size:8px;font-weight:600;text-align:center;line-height:1.1;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.roulette-pointer{position:absolute;top:0;left:50%;transform:translateX(-50%);width:3px;height:100%;background:linear-gradient(180deg,#fbbf24,#ef4444);box-shadow:0 0 20px #fbbf24;z-index:10}
-.roulette-pointer::before{content:"▼";position:absolute;top:-8px;left:50%;transform:translateX(-50%);color:#fbbf24;font-size:16px;filter:drop-shadow(0 0 6px #fbbf24)}
-.win-item{display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:14px}
-.win-item .w-emoji{font-size:100px;line-height:1;filter:drop-shadow(0 0 24px currentColor)}
-.win-item .w-name{font-size:16px;font-weight:800;letter-spacing:.5px}
-.win-item .w-rarity{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:3px 12px;border-radius:20px;background:rgba(255,255,255,.08)}
-.btn{width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit;letter-spacing:.3px}
+.roulette-item{flex-shrink:0;width:96px;height:96px;background:#1a1230;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;border:2px solid #2a1f45}
+.roulette-item .r-icon{height:56px;display:flex;align-items:center;justify-content:center;font-size:42px}
+.roulette-item .r-icon img{max-width:100%;max-height:100%;object-fit:contain}
+.roulette-item .r-name{font-size:8px;font-weight:700;text-align:center;line-height:1.1;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.roulette-pointer{position:absolute;top:0;left:50%;transform:translateX(-50%);width:3px;height:100%;background:linear-gradient(180deg,#a855f7,#7c3aed);box-shadow:0 0 24px #a855f7;z-index:10}
+.roulette-pointer::before{content:"▼";position:absolute;top:-10px;left:50%;transform:translateX(-50%);color:#a855f7;font-size:18px;filter:drop-shadow(0 0 8px #a855f7)}
+
+.win-item{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:16px}
+.win-icon{height:140px;display:flex;align-items:center;justify-content:center;font-size:100px;filter:drop-shadow(0 0 30px currentColor)}
+.win-icon img{max-width:140px;max-height:140px;object-fit:contain}
+.win-name{font-size:17px;font-weight:900;letter-spacing:.5px;text-align:center}
+.win-rarity{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:2px;padding:4px 14px;border-radius:20px;background:rgba(255,255,255,.08)}
+
+.btn{width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;transition:all .2s;font-family:inherit;letter-spacing:.5px}
 .btn:active:not(:disabled){transform:scale(.97)}
 .btn:disabled{opacity:.4;cursor:not-allowed}
-.btn-open{background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;box-shadow:0 4px 20px rgba(245,158,11,.5)}
-.btn-close{background:#2a3140;color:#e8edf5;margin-top:8px}
-.btn-sell{background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 4px 20px rgba(16,185,129,.4)}
-.btn-add{background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:#fff;box-shadow:0 4px 20px rgba(139,92,246,.4);margin-top:8px}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a1f2b;border:1px solid #2a3140;border-radius:12px;padding:10px 18px;font-size:13px;font-weight:500;color:#e8edf5;box-shadow:0 8px 30px rgba(0,0,0,.7);z-index:2000;transition:all .35s;opacity:0;max-width:90%;text-align:center}
+.btn-open{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;box-shadow:0 6px 24px rgba(168,85,247,.5)}
+.btn-close{background:#2a1f45;color:#c4b5fd;margin-top:8px}
+.btn-sell{background:linear-gradient(135deg,#10b981,#059669);color:#fff;box-shadow:0 6px 20px rgba(16,185,129,.4)}
+.btn-add{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;box-shadow:0 6px 20px rgba(168,85,247,.4);margin-top:8px}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,#15102a,#0f0a1e);border-top:1px solid #2a1f45;display:flex;justify-content:space-around;padding:8px 0 calc(8px + env(safe-area-inset-bottom));z-index:100;max-width:520px;margin:0 auto}
+.nav-btn{background:none;border:none;color:#6b5a8a;font-size:10px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 8px;font-family:inherit;transition:all .2s;letter-spacing:.3px}
+.nav-btn .nav-icon{font-size:22px;line-height:1;filter:grayscale(1) opacity(.6);transition:all .2s}
+.nav-btn.active{color:#a855f7}
+.nav-btn.active .nav-icon{filter:none;text-shadow:0 0 10px #a855f7}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(100px);background:#1a1230;border:1px solid #a855f7;border-radius:14px;padding:12px 20px;font-size:13px;font-weight:600;color:#fff;box-shadow:0 8px 30px rgba(168,85,247,.4);z-index:2000;transition:all .35s;opacity:0;max-width:90%;text-align:center}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
-.loading{position:fixed;inset:0;background:#0a0c10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:3000;transition:opacity .5s}
+
+.loading{position:fixed;inset:0;background:#0a0a12;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:3000;transition:opacity .5s}
 .loading.hidden{opacity:0;pointer-events:none}
-.spinner{width:44px;height:44px;border:4px solid #2a3140;border-top-color:#f59e0b;border-radius:50%;animation:spin .8s linear infinite}
+.spinner{width:48px;height:48px;border:4px solid #2a1f45;border-top-color:#a855f7;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{font-size:13px;color:#6b7a90}
-.inventory{background:#1a1f2b;border-radius:18px;padding:14px;border:1px solid #2a3140;box-shadow:0 4px 18px rgba(0,0,0,.5)}
-.inv-title{font-size:13px;font-weight:700;color:#a78bfa;text-align:center;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
-.inv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:220px;overflow-y:auto}
-.inv-item{background:#12161f;border-radius:8px;padding:6px 4px;text-align:center;border:1px solid #2a3140;position:relative}
-.inv-item .inv-emoji{font-size:28px;line-height:1;display:block;margin-bottom:2px}
-.inv-item .inv-name{font-size:8px;font-weight:600;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.inv-empty{text-align:center;color:#6b7a90;font-size:12px;padding:12px 0}
+.loading-text{font-size:13px;color:#8b7ba8}
+
+.sell-modal{position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:1100;padding:16px}
+.sell-modal.show{display:flex}
+.sell-content{background:linear-gradient(180deg,#1a1230,#0f0a1e);border-radius:24px;padding:24px;max-width:400px;width:100%;border:1px solid #3a2a5a;text-align:center;animation:popIn .3s ease}
+.sell-title{font-size:15px;font-weight:900;margin-bottom:16px;color:#fff;letter-spacing:2px;text-transform:uppercase}
+.sell-price{font-size:22px;font-weight:900;color:#fbbf24;margin-bottom:20px;text-shadow:0 0 14px rgba(251,191,36,.5)}
+
+.promo-modal{position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:1200;padding:16px}
+.promo-modal.show{display:flex}
+.promo-content{background:linear-gradient(180deg,#1a1230,#0f0a1e);border-radius:24px;padding:24px;max-width:400px;width:100%;border:1px solid #3a2a5a;text-align:center;animation:popIn .3s ease}
+.promo-title{font-size:16px;font-weight:900;margin-bottom:6px;color:#fbbf24;letter-spacing:2px;text-transform:uppercase;text-shadow:0 0 14px rgba(251,191,36,.5)}
+.promo-sub{font-size:12px;color:#8b7ba8;margin-bottom:18px}
+.promo-input{width:100%;padding:14px 16px;background:#0a0616;border:2px solid #3a2a5a;border-radius:14px;color:#fff;font-size:15px;font-weight:700;text-align:center;letter-spacing:2px;font-family:inherit;outline:none;transition:all .2s;text-transform:lowercase}
+.promo-input:focus{border-color:#a855f7;box-shadow:0 0 20px rgba(168,85,247,.3)}
+.promo-btn{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;width:100%;padding:14px;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px;font-family:inherit;letter-spacing:.5px;box-shadow:0 6px 20px rgba(168,85,247,.4)}
+.promo-btn:active{transform:scale(.97)}
 </style>
 </head>
 <body>
 <div id="app">
-<div class="profile-card">
+
+<div class="top-bar">
+<div class="logo"><span class="logo-icon">🦴</span></div>
+<div class="balance-box">
+<span class="balance-val" id="coinsValue">0</span>
+<span class="balance-cur">M</span>
+</div>
+<button class="btn-promo" id="btnPromo">🎁 Промо</button>
+</div>
+
+<div class="profile-row">
 <div class="avatar-wrap"><div class="avatar" id="avatarBox"><span id="avatarLetter">?</span></div></div>
 <div class="profile-info">
 <div class="profile-name" id="profileName">Гравець</div>
 <div class="profile-id" id="profileId">ID: ---</div>
 </div>
+<div class="profile-badge">LVL <span id="lvlValue">1</span></div>
 </div>
-<div class="resources">
-<div class="res-item coins"><span class="res-emoji">🪙</span><div class="res-value" id="coinsValue">0</div><div class="res-label">Монети</div></div>
-<div class="res-item items"><span class="res-emoji">🎒</span><div class="res-value" id="itemsValue">0</div><div class="res-label">Предмети</div></div>
+
+<div class="tabs">
+<button class="tab active" data-tab="cases">🎁 Кейси</button>
+<button class="tab" data-tab="inventory">🎒 Інвентар (<span id="invCount">0</span>)</button>
 </div>
-<div class="section-title">📦 Ящики (25)</div>
+
+<div class="inventory-section active" id="casesSection">
+<div class="section-header">
+<span class="diamond">◆</span>
+<span class="section-title">Mystery Box</span>
+<span class="diamond">◆</span>
+</div>
 <div class="cases-grid" id="casesGrid"></div>
-<div class="section-title">⚰️ Гробовець</div>
-<div id="coffinSlot"></div>
-<div class="inventory">
-<div class="inv-title">🎒 Інвентар</div>
-<div class="inv-grid" id="invGrid"><div class="inv-empty" style="grid-column:1/-1">Порожньо</div></div>
 </div>
+
+<div class="inventory-section" id="inventorySection">
+<div class="section-header">
+<span class="diamond">◆</span>
+<span class="section-title">Мої скіни</span>
+<span class="diamond">◆</span>
 </div>
+<div class="inv-grid" id="invGrid"><div class="inv-empty">Порожньо</div></div>
+</div>
+
+</div>
+
+<div class="bottom-nav">
+<button class="nav-btn active" data-nav="cases"><span class="nav-icon">🎁</span>Кейси</button>
+<button class="nav-btn" data-nav="inventory"><span class="nav-icon">🎒</span>Скіни</button>
+<button class="nav-btn" data-nav="top"><span class="nav-icon">🏆</span>Топ</button>
+<button class="nav-btn" data-nav="profile"><span class="nav-icon">👤</span>Профіль</button>
+</div>
+
 <div class="modal" id="modal">
 <div class="modal-content">
-<div class="modal-title" id="modalTitle">Відкриття ящика</div>
+<div class="modal-title" id="modalTitle">Відкриття кейсу</div>
 <div class="roulette-wrap" id="rouletteWrap">
 <div class="roulette-track" id="rouletteTrack"></div>
 <div class="roulette-pointer"></div>
@@ -110,6 +193,27 @@ body{background:#0a0c10;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 <button class="btn btn-close" id="btnCloseModal">Закрити</button>
 </div>
 </div>
+
+<div class="sell-modal" id="sellModal">
+<div class="sell-content">
+<div class="sell-title">Продати предмет?</div>
+<div id="sellItemInfo"></div>
+<div class="sell-price" id="sellPrice">0 M</div>
+<button class="btn btn-sell" id="btnConfirmSell">💰 Продати</button>
+<button class="btn btn-close" id="btnCancelSell">Скасувати</button>
+</div>
+</div>
+
+<div class="promo-modal" id="promoModal">
+<div class="promo-content">
+<div class="promo-title">🎁 Промокод</div>
+<div class="promo-sub">Введіть код та отримайте монети</div>
+<input type="text" class="promo-input" id="promoInput" placeholder="ВВЕДІТЬ КОД" autocomplete="off">
+<button class="promo-btn" id="btnActivatePromo">Активувати</button>
+<button class="btn btn-close" id="btnClosePromo">Закрити</button>
+</div>
+</div>
+
 <div class="loading" id="loadingScreen">
 <div class="spinner"></div>
 <div class="loading-text">Завантаження...</div>
@@ -143,30 +247,41 @@ userPhotoUrl = u.photo_url || "";
 }
 const fullName = (userName + (userLastName ? " " + userLastName : "")).trim();
 
-let state = { coins: 100, name: fullName, inventory: [] };
-let currentCase = null, isProcessing = false, userDocUnsub = null;
+let state = { coins: 100, name: fullName, inventory: [], usedPromos: [] };
+let currentCase = null, isProcessing = false, userDocUnsub = null, sellTarget = null;
+
+// ПРОМОКОДИ
+const PROMOS = {
+"26fire": 30,
+"newyear2027": 55
+};
 
 try {
-const saved = localStorage.getItem("flame_state");
+const saved = localStorage.getItem("musor_state");
 if (saved) {
 const d = JSON.parse(saved);
 state.coins = d.coins != null ? d.coins : 100;
 state.inventory = d.inventory || [];
+state.usedPromos = d.usedPromos || [];
 }
 } catch(e){}
 
 function saveLocal() {
-try { localStorage.setItem("flame_state", JSON.stringify({ coins: state.coins, inventory: state.inventory })); } catch(e){}
+try { localStorage.setItem("musor_state", JSON.stringify({ coins: state.coins, inventory: state.inventory, usedPromos: state.usedPromos })); } catch(e){}
 }
 
 const $ = (id) => document.getElementById(id);
 const avatarBox = $("avatarBox"), avatarLetter = $("avatarLetter");
 const profileName = $("profileName"), profileId = $("profileId");
-const coinsValue = $("coinsValue"), itemsValue = $("itemsValue");
-const casesGrid = $("casesGrid"), coffinSlot = $("coffinSlot"), invGrid = $("invGrid");
+const coinsValue = $("coinsValue"), invCount = $("invCount");
+const casesGrid = $("casesGrid"), invGrid = $("invGrid");
 const modal = $("modal"), modalTitle = $("modalTitle"), rouletteTrack = $("rouletteTrack");
 const resultBlock = $("resultBlock"), btnOpen = $("btnOpen"), btnCloseModal = $("btnCloseModal");
 const loadingScreen = $("loadingScreen"), toastEl = $("toast");
+const sellModal = $("sellModal"), sellItemInfo = $("sellItemInfo"), sellPrice = $("sellPrice");
+const btnConfirmSell = $("btnConfirmSell"), btnCancelSell = $("btnCancelSell");
+const casesSection = $("casesSection"), inventorySection = $("inventorySection");
+const promoModal = $("promoModal"), promoInput = $("promoInput"), btnActivatePromo = $("btnActivatePromo"), btnClosePromo = $("btnClosePromo");
 
 function showToast(msg, d) {
 d = d || 2400;
@@ -178,41 +293,23 @@ toastEl._t = setTimeout(function() { toastEl.classList.remove("show"); }, d);
 
 // ============ РАРІТЕТ ============
 const RARITY = {
-common:    { name: "Звичайний",   color: "#9ca3af", basePrice: 1 },
-uncommon:  { name: "Незвичайний", color: "#3b82f6", basePrice: 3 },
-rare:      { name: "Рідкісний",   color: "#8b5cf6", basePrice: 10 },
-mythical:  { name: "Міфічний",    color: "#ec4899", basePrice: 30 },
-legendary: { name: "Легендарний", color: "#f59e0b", basePrice: 100 },
-ancient:   { name: "Древній",     color: "#ef4444", basePrice: 400 }
+common:    { name: "Звичайний",   color: "#9ca3af", basePrice: 2 },
+uncommon:  { name: "Незвичайний", color: "#3b82f6", basePrice: 8 },
+rare:      { name: "Рідкісний",   color: "#8b5cf6", basePrice: 30 },
+mythical:  { name: "Міфічний",    color: "#ec4899", basePrice: 120 },
+legendary: { name: "Легендарний", color: "#f59e0b", basePrice: 500 },
+ancient:   { name: "Древній",     color: "#ef4444", basePrice: 2500 }
 };
 
-const TYPE_EMOJI = { knife: "🗡️", gloves: "🧤", gun: "🔫" };
-const TYPE_IMG = { knife: "🗡️", gloves: "🧤", gun: "🔫" };
+const TYPE_EMOJI = { knife: "🗡️", gloves: "🧤", gun: "🔫", coffin: "⚰️" };
 
-// ============ КЕШ КАРТИНОК (щоб не спамити запитами) ============
-const imgCache = {};
-
-// Перевіряє чи картинка існує. Повертає true/false
-function tryLoadImage(url) {
-return new Promise(function(resolve) {
-if (imgCache[url] !== undefined) { resolve(imgCache[url]); return; }
-const img = new Image();
-img.onload = function() { imgCache[url] = true; resolve(true); };
-img.onerror = function() { imgCache[url] = false; resolve(false); };
-img.src = url;
-});
-}
-
-// Повертає HTML: якщо картинка є — <img>, інакше емодзі
-// Використовує прямий onerror fallback, тому навіть без попередньої перевірки все ок
-function imgOrEmoji(url, emoji, size, extraStyle) {
-size = size || 56;
-extraStyle = extraStyle || "";
-// одразу додаємо <img> з onerror → підмінюємо на емодзі
-// це найшвидший спосіб — не чекаємо на перевірку
-const uid = "x" + Math.random().toString(36).slice(2, 9);
-return '<img src="'+url+'" alt="" style="display:none;width:'+size+'px;height:'+size+'px;object-fit:contain;'+extraStyle+'" onload="this.style.display=\'block\';var e=document.getElementById(\''+uid+'\');if(e)e.style.display=\'none\';" onerror="this.remove();var e=document.getElementById(\''+uid+'\');if(e)e.style.display=\'block\';"><span id="'+uid+'" style="display:block;font-size:'+(size*0.85)+'px;line-height:1;'+extraStyle+'">'+emoji+'</span>';
-}
+// ============ 4 ТИПИ ГРОБІВ ============
+const COFFINS = [
+{ id: "coffin_big",     name: "⚰️ Великий гріб",      emoji: "⚰️", color: "#9ca3af", price: 2000,  weight: 40, img: "textures/coffin/coffin_big.png" },
+{ id: "coffin_wide",    name: "🪦 Широкий гріб",       emoji: "🪦", color: "#3b82f6", price: 5000,  weight: 30, img: "textures/coffin/coffin_wide.png" },
+{ id: "coffin_golden",  name: "✨ Золотий гріб",       emoji: "✨", color: "#f59e0b", price: 15000, weight: 20, img: "textures/coffin/coffin_golden.png" },
+{ id: "coffin_mom",     name: "👑 Гріб для мам",       emoji: "👑", color: "#ec4899", price: 50000, weight: 10, img: "textures/coffin/coffin_mom.png" }
+];
 
 // ============ СКІНИ ============
 const SKINS = [];
@@ -253,7 +350,8 @@ name: '«'+CASE_NAMES[i]+'»',
 price: CASE_PRICES[i],
 mult: CASE_MULT[i],
 weights: CASE_WEIGHTS[i],
-img: "textures/cases/case_"+String(i+1).padStart(2,'0')+".png"
+img: "textures/cases/case_"+String(i+1).padStart(2,'0')+".png",
+wide: i >= 20
 });
 }
 
@@ -270,15 +368,16 @@ const skin = pool.length ? pool[Math.floor(Math.random() * pool.length)] : SKINS
 return { skin: skin, price: RARITY[skin.rarity].basePrice * mult };
 }
 
-function pickSkinCoffin() {
-const knifeGloves = SKINS.filter(function(s){ return s.type === "knife" || s.type === "gloves"; });
-const legendaries = knifeGloves.filter(function(s){ return s.rarity === "legendary"; });
-const ancients = knifeGloves.filter(function(s){ return s.rarity === "ancient"; });
-const roll = Math.random();
-let skin;
-if (roll < 0.6) skin = legendaries[Math.floor(Math.random() * legendaries.length)];
-else skin = ancients[Math.floor(Math.random() * ancients.length)];
-return { skin: skin, price: RARITY[skin.rarity].basePrice * 20 };
+// Гробовець — вибір гробу за вагами
+function pickCoffin() {
+const total = COFFINS.reduce(function(s, c) { return s + c.weight; }, 0);
+let r = Math.random() * total;
+let chosen = COFFINS[0];
+for (const c of COFFINS) {
+if (r < c.weight) { chosen = c; break; }
+r -= c.weight;
+}
+return { skin: { id: chosen.id, name: chosen.name, type: "coffin", rarity: "ancient", img: chosen.img, emoji: chosen.emoji, color: chosen.color, rarityColor: chosen.color }, price: chosen.price };
 }
 
 function pickRandomSkin() {
@@ -286,12 +385,6 @@ return SKINS[Math.floor(Math.random() * SKINS.length)];
 }
 
 // ============ АВАТАР ============
-function stringToGradient(str) {
-let hash = 0;
-for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-const h1 = Math.abs(hash) % 360, h2 = (h1 + 40) % 360;
-return "linear-gradient(135deg, hsl("+h1+",75%,55%), hsl("+h2+",80%,45%))";
-}
 function setAvatar() {
 const letter = (state.name || "?").charAt(0).toUpperCase();
 const existingImg = avatarBox.querySelector("img");
@@ -299,22 +392,27 @@ if (existingImg) existingImg.remove();
 if (userPhotoUrl) {
 const img = document.createElement("img");
 img.src = userPhotoUrl;
-img.onerror = function() { img.remove(); avatarLetter.style.display = "flex"; avatarLetter.textContent = letter; avatarBox.style.background = stringToGradient(state.name || "?"); };
+img.onerror = function() { img.remove(); avatarLetter.style.display = "flex"; avatarLetter.textContent = letter; };
 avatarBox.appendChild(img);
 avatarLetter.style.display = "none";
 } else {
 avatarLetter.style.display = "flex"; avatarLetter.textContent = letter;
-avatarBox.style.background = stringToGradient(state.name || "?");
 }
 }
 
-// ============ РЕНДЕР ============
+function imgOrEmoji(url, emoji, size) {
+size = size || 56;
+const uid = "x" + Math.random().toString(36).slice(2, 9);
+return '<img src="'+url+'" alt="" style="display:none;max-width:100%;max-height:100%;object-fit:contain" onload="this.style.display=\'block\';var e=document.getElementById(\''+uid+'\');if(e)e.style.display=\'none\';" onerror="this.remove();var e=document.getElementById(\''+uid+'\');if(e)e.style.display=\'block\';"><span id="'+uid+'" style="display:block;font-size:'+(size*0.9)+'px;line-height:1">'+emoji+'</span>';
+}
+
 function render() {
 setAvatar();
 profileName.textContent = state.name || "Гравець";
 profileId.textContent = "ID: " + userId;
 coinsValue.textContent = state.coins;
-itemsValue.textContent = (state.inventory || []).length;
+invCount.textContent = (state.inventory || []).length;
+$("lvlValue").textContent = Math.max(1, Math.floor(state.coins / 500) + 1);
 renderCases();
 renderInventory();
 }
@@ -323,16 +421,25 @@ function renderCases() {
 let html = "";
 for (let i = 0; i < CASES.length; i++) {
 const c = CASES[i];
-const badge = i >= 20 ? '<div class="case-badge">TOP</div>' : i >= 12 ? '<div class="case-badge gold">PRO</div>' : '';
-const caseEmoji = "📦";
-const imgHtml = imgOrEmoji(c.img, caseEmoji, 64);
-html += '<div class="case-card" data-case="'+c.id+'" data-price="'+c.price+'">'
+let badge = '';
+if (i >= 20) badge = '<div class="case-badge">TOP</div>';
+else if (i >= 12) badge = '<div class="case-badge gold">PRO</div>';
+const imgHtml = imgOrEmoji(c.img, "🎁", 60);
+html += '<div class="case-card' + (c.wide ? ' wide' : '') + '" data-case="'+c.id+'" data-price="'+c.price+'">'
 + badge
 + '<div class="case-img">'+imgHtml+'</div>'
 + '<div class="case-name">'+c.name+'</div>'
-+ '<div class="case-price">'+c.price+' 🪙</div>'
++ '<div class="case-price"><span>'+c.price+'</span><span class="cur">M</span></div>'
 + '</div>';
 }
+// Гробовець
+const coffinImg = imgOrEmoji("textures/coffin/coffin.png", "⚰️", 90);
+html += '<div class="case-card wide coffin" data-case="coffin" data-price="5000">'
++ '<div class="case-badge red">🔥 ТОП</div>'
++ '<div class="case-img">'+coffinImg+'</div>'
++ '<div class="case-name">⚰️ Гробовець</div>'
++ '<div class="case-price"><span>5000</span><span class="cur">M</span></div>'
++ '</div>';
 casesGrid.innerHTML = html;
 
 const cards = casesGrid.querySelectorAll(".case-card");
@@ -341,54 +448,51 @@ el.addEventListener("click", function() {
 openCaseModal(el.dataset.case, parseInt(el.dataset.price, 10));
 });
 });
-
-const coffinImg = imgOrEmoji("textures/coffin/coffin.png", "⚰️", 100);
-coffinSlot.innerHTML = '<div class="case-card coffin" data-case="coffin" data-price="5000">'
-+ '<div class="case-badge">🔥 ТОП</div>'
-+ '<div class="case-img">'+coffinImg+'</div>'
-+ '<div class="case-name" style="font-size:14px">Гробовець</div>'
-+ '<div class="case-price">5000 🪙 · тільки ножі/рукавички</div>'
-+ '</div>';
-coffinSlot.querySelector(".case-card").addEventListener("click", function() {
-openCaseModal("coffin", 5000);
-});
 }
 
 function renderInventory() {
 const inv = state.inventory || [];
 if (!inv.length) {
-invGrid.innerHTML = '<div class="inv-empty" style="grid-column:1/-1">Порожньо</div>';
+invGrid.innerHTML = '<div class="inv-empty">Порожньо<br><span style="font-size:11px;color:#6b5a8a">Відкрийте кейс, щоб отримати скіни</span></div>';
 return;
 }
-const items = inv.slice(-12).reverse();
 let html = "";
-for (const it of items) {
-const emoji = TYPE_EMOJI[it.type] || "📦";
+for (let i = inv.length - 1; i >= 0; i--) {
+const it = inv[i];
+const emoji = it.emoji || TYPE_EMOJI[it.type] || "📦";
 const color = it.rarityColor || (RARITY[it.rarity] ? RARITY[it.rarity].color : "#e8edf5");
-const icon = imgOrEmoji(it.img, emoji, 40);
-html += '<div class="inv-item" title="'+it.name+'" style="border-color:'+color+'">'
-+ '<div style="color:'+color+'">'+icon+'</div>'
+const icon = imgOrEmoji(it.img, emoji, 44);
+html += '<div class="inv-item" data-uid="'+it.uid+'" style="border-color:'+color+'40">'
++ '<div class="inv-icon">'+icon+'</div>'
 + '<div class="inv-name" style="color:'+color+'">'+it.name+'</div>'
++ '<div class="inv-price">💰 '+(it.sellPrice || 0)+'</div>'
++ '<div class="inv-rarity-bar" style="background:'+color+'"></div>'
 + '</div>';
 }
 invGrid.innerHTML = html;
+
+const items = invGrid.querySelectorAll(".inv-item");
+items.forEach(function(el) {
+el.addEventListener("click", function() {
+openSellModal(el.dataset.uid);
+});
+});
 }
 
-// ============ МОДАЛКА ============
 function openCaseModal(caseId, price) {
 if (!state.inventory) state.inventory = [];
-if (state.coins < price) { showToast("❌ Недостатньо монет! Потрібно " + price + " 🪙"); return; }
+if (state.coins < price) { showToast("❌ Недостатньо монет! Потрібно " + price + " M"); return; }
 currentCase = { id: caseId, price: price };
-modalTitle.textContent = caseId === "coffin" ? "⚰️ Гробовець" : "📦 Відкриття ящика";
+modalTitle.textContent = caseId === "coffin" ? "⚰️ Гробовець" : "🎁 Відкриття";
 
 let html = "";
 for (let i = 0; i < 30; i++) {
 const s = pickRandomSkin();
 const emoji = TYPE_EMOJI[s.type] || "📦";
 const color = RARITY[s.rarity].color;
-const icon = imgOrEmoji(s.img, emoji, 56);
+const icon = imgOrEmoji(s.img, emoji, 44);
 html += '<div class="roulette-item">'
-+ '<div style="color:'+color+'">'+icon+'</div>'
++ '<div class="r-icon">'+icon+'</div>'
 + '<div class="r-name" style="color:'+color+'">'+s.name+'</div>'
 + '</div>';
 }
@@ -400,7 +504,7 @@ resultBlock.style.display = "none";
 btnOpen.style.display = "block";
 $("rouletteWrap").style.display = "block";
 btnOpen.disabled = false;
-btnOpen.textContent = "🔓 Відкрити за " + price + " 🪙";
+btnOpen.textContent = "🔓 Відкрити за " + price + " M";
 modal.classList.add("show");
 }
 
@@ -418,7 +522,7 @@ render();
 await saveState({ coins: state.coins });
 
 let result;
-if (currentCase.id === "coffin") result = pickSkinCoffin();
+if (currentCase.id === "coffin") result = pickCoffin();
 else {
 const found = CASES.find(function(c){return c.id === currentCase.id;});
 result = pickSkinFromWeights(found.weights, found.mult);
@@ -429,11 +533,11 @@ const finalPrice = result.price;
 let html = "";
 for (let i = 0; i < 30; i++) {
 const s = i === 25 ? winner : pickRandomSkin();
-const emoji = TYPE_EMOJI[s.type] || "📦";
-const color = RARITY[s.rarity].color;
-const icon = imgOrEmoji(s.img, emoji, 56);
+const emoji = s.emoji || TYPE_EMOJI[s.type] || "📦";
+const color = s.color || (RARITY[s.rarity] ? RARITY[s.rarity].color : "#e8edf5");
+const icon = imgOrEmoji(s.img, emoji, 44);
 html += '<div class="roulette-item">'
-+ '<div style="color:'+color+'">'+icon+'</div>'
++ '<div class="r-icon">'+icon+'</div>'
 + '<div class="r-name" style="color:'+color+'">'+s.name+'</div>'
 + '</div>';
 }
@@ -442,35 +546,36 @@ rouletteTrack.style.transition = "none";
 rouletteTrack.style.transform = "translateX(0)";
 void rouletteTrack.offsetWidth;
 
-const itemW = 96;
+const itemW = 102;
 const containerW = $("rouletteWrap").clientWidth;
 const targetX = -(25 * itemW) + (containerW / 2) - (itemW / 2);
 rouletteTrack.style.transition = "transform 4s cubic-bezier(.15,.85,.3,1)";
 rouletteTrack.style.transform = "translateX(" + targetX + "px)";
 
 setTimeout(async function() {
-const r = RARITY[winner.rarity];
-const emoji = TYPE_EMOJI[winner.type] || "📦";
-const winIcon = imgOrEmoji(winner.img, emoji, 140);
+const isCoffin = winner.type === "coffin";
+const r = isCoffin ? { name: winner.name.replace(/[^\wа-яіїєґ\s]/gi, '').trim(), color: winner.color } : RARITY[winner.rarity];
+const emoji = winner.emoji || TYPE_EMOJI[winner.type] || "📦";
+const winIcon = imgOrEmoji(winner.img, emoji, 100);
 resultBlock.style.display = "block";
 resultBlock.innerHTML = '<div class="win-item" style="color:'+r.color+'">'
-+ '<div style="color:'+r.color+'">'+winIcon+'</div>'
-+ '<div class="w-name" style="color:'+r.color+'">'+winner.name+'</div>'
-+ '<div class="w-rarity" style="color:'+r.color+'">'+r.name+' · '+finalPrice+' 🪙</div>'
++ '<div class="win-icon" style="color:'+r.color+'">'+winIcon+'</div>'
++ '<div class="win-name" style="color:'+r.color+'">'+winner.name+'</div>'
++ '<div class="win-rarity" style="color:'+r.color+'">'+r.name+' · '+finalPrice+' M</div>'
 + '</div>'
-+ '<button class="btn btn-sell" id="btnSell">💰 Продати за '+finalPrice+' 🪙</button>'
++ '<button class="btn btn-sell" id="btnSell">💰 Продати за '+finalPrice+' M</button>'
 + '<button class="btn btn-add" id="btnAdd">🎒 Залишити в інвентар</button>';
 $("rouletteWrap").style.display = "none";
 btnOpen.style.display = "none";
 
-const newItem = { id: winner.id, name: winner.name, type: winner.type, rarity: winner.rarity, rarityName: r.name, rarityColor: r.color, sellPrice: finalPrice, img: winner.img, uid: Date.now() + "_" + Math.random().toString(36).slice(2,6) };
+const newItem = { id: winner.id, name: winner.name, type: winner.type, rarity: winner.rarity, rarityName: r.name, rarityColor: r.color, sellPrice: finalPrice, img: winner.img, emoji: winner.emoji || null, uid: Date.now() + "_" + Math.random().toString(36).slice(2,6) };
 
 document.getElementById("btnSell").addEventListener("click", async function() {
 state.coins += finalPrice;
 saveLocal();
 render();
 await saveState({ coins: state.coins });
-showToast("💰 Продано за " + finalPrice + " 🪙!");
+showToast("💰 Продано за " + finalPrice + " M!");
 modal.classList.remove("show");
 isProcessing = false;
 });
@@ -501,6 +606,112 @@ render();
 }, 4200);
 }
 
+function openSellModal(uid) {
+const idx = (state.inventory || []).findIndex(function(it) { return it.uid === uid; });
+if (idx === -1) return;
+sellTarget = idx;
+const it = state.inventory[idx];
+const emoji = it.emoji || TYPE_EMOJI[it.type] || "📦";
+const color = it.rarityColor || (RARITY[it.rarity] ? RARITY[it.rarity].color : "#e8edf5");
+const icon = imgOrEmoji(it.img, emoji, 100);
+sellItemInfo.innerHTML = '<div class="win-item" style="color:'+color+'">'
++ '<div class="win-icon" style="color:'+color+'">'+icon+'</div>'
++ '<div class="win-name" style="color:'+color+'">'+it.name+'</div>'
++ '<div class="win-rarity" style="color:'+color+'">'+(it.rarityName || it.rarity)+'</div>'
++ '</div>';
+sellPrice.textContent = (it.sellPrice || 0) + " M";
+sellModal.classList.add("show");
+}
+
+btnConfirmSell.addEventListener("click", async function() {
+if (sellTarget === null) return;
+const it = state.inventory[sellTarget];
+if (!it) return;
+const price = it.sellPrice || 0;
+state.coins += price;
+state.inventory.splice(sellTarget, 1);
+saveLocal();
+render();
+await saveState({ coins: state.coins, inventory: state.inventory });
+showToast("💰 Продано за " + price + " M!");
+sellModal.classList.remove("show");
+sellTarget = null;
+});
+
+btnCancelSell.addEventListener("click", function() {
+sellModal.classList.remove("show");
+sellTarget = null;
+});
+
+// ============ ПРОМОКОДИ ============
+$("btnPromo").addEventListener("click", function() {
+promoInput.value = "";
+promoModal.classList.add("show");
+setTimeout(function() { promoInput.focus(); }, 200);
+});
+
+btnClosePromo.addEventListener("click", function() {
+promoModal.classList.remove("show");
+});
+
+btnActivatePromo.addEventListener("click", async function() {
+const code = promoInput.value.trim().toLowerCase();
+if (!code) { showToast("❌ Введіть код!"); return; }
+if (!PROMOS[code]) { showToast("❌ Невірний промокод!"); return; }
+if (state.usedPromos && state.usedPromos.indexOf(code) !== -1) {
+showToast("⚠️ Ви вже використали цей код!");
+return;
+}
+const bonus = PROMOS[code];
+state.coins += bonus;
+if (!state.usedPromos) state.usedPromos = [];
+state.usedPromos.push(code);
+saveLocal();
+render();
+await saveState({ coins: state.coins, usedPromos: state.usedPromos });
+showToast("🎉 Промокод активовано! +" + bonus + " M");
+promoModal.classList.remove("show");
+});
+
+promoInput.addEventListener("keydown", function(e) {
+if (e.key === "Enter") btnActivatePromo.click();
+});
+
+// ============ ВКЛАДКИ ============
+document.querySelectorAll(".tab").forEach(function(tab) {
+tab.addEventListener("click", function() {
+document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+tab.classList.add("active");
+const target = tab.dataset.tab;
+if (target === "cases") {
+casesSection.classList.add("active");
+inventorySection.classList.remove("active");
+} else {
+casesSection.classList.remove("active");
+inventorySection.classList.add("active");
+}
+});
+});
+
+document.querySelectorAll(".nav-btn").forEach(function(btn) {
+btn.addEventListener("click", function() {
+document.querySelectorAll(".nav-btn").forEach(function(b) { b.classList.remove("active"); });
+btn.classList.add("active");
+const target = btn.dataset.nav;
+if (target === "cases") {
+document.querySelector('.tab[data-tab="cases"]').click();
+window.scrollTo({top:0,behavior:"smooth"});
+} else if (target === "inventory") {
+document.querySelector('.tab[data-tab="inventory"]').click();
+window.scrollTo({top:0,behavior:"smooth"});
+} else if (target === "top") {
+showToast("🏆 Топ гравців — скоро!");
+} else if (target === "profile") {
+showToast("👤 Профіль — скоро!");
+}
+});
+});
+
 btnOpen.addEventListener("click", openCurrentCase);
 btnCloseModal.addEventListener("click", function() {
 if (!isProcessing) modal.classList.remove("show");
@@ -517,7 +728,7 @@ try {
 const userRef = doc(db, "players", userId);
 const snap = await getDoc(userRef);
 if (!snap.exists()) {
-const np = { coins: 100, name: fullName, inventory: [], photoUrl: userPhotoUrl || "", createdAt: serverTimestamp() };
+const np = { coins: 100, name: fullName, inventory: [], usedPromos: [], photoUrl: userPhotoUrl || "", createdAt: serverTimestamp() };
 await setDoc(userRef, np);
 state = Object.assign({}, state, np);
 } else {
@@ -525,6 +736,7 @@ const d = snap.data();
 state.coins = d.coins != null ? d.coins : state.coins;
 state.name = d.name || state.name;
 state.inventory = d.inventory || state.inventory;
+state.usedPromos = d.usedPromos || state.usedPromos || [];
 }
 if (userDocUnsub) userDocUnsub();
 userDocUnsub = onSnapshot(userRef, function(ds) {
@@ -533,6 +745,7 @@ const d = ds.data();
 state.coins = d.coins != null ? d.coins : state.coins;
 state.inventory = d.inventory || state.inventory;
 state.name = d.name || state.name;
+state.usedPromos = d.usedPromos || state.usedPromos || [];
 saveLocal();
 render();
 });
