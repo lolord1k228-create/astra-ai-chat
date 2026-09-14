@@ -187,7 +187,32 @@ ancient:   { name: "Древній",     color: "#ef4444", basePrice: 400 }
 };
 
 const TYPE_EMOJI = { knife: "🗡️", gloves: "🧤", gun: "🔫" };
-const CASE_IMG = { knife: "🗡️", gloves: "🧤", gun: "🔫" };
+const TYPE_IMG = { knife: "🗡️", gloves: "🧤", gun: "🔫" };
+
+// ============ КЕШ КАРТИНОК (щоб не спамити запитами) ============
+const imgCache = {};
+
+// Перевіряє чи картинка існує. Повертає true/false
+function tryLoadImage(url) {
+return new Promise(function(resolve) {
+if (imgCache[url] !== undefined) { resolve(imgCache[url]); return; }
+const img = new Image();
+img.onload = function() { imgCache[url] = true; resolve(true); };
+img.onerror = function() { imgCache[url] = false; resolve(false); };
+img.src = url;
+});
+}
+
+// Повертає HTML: якщо картинка є — <img>, інакше емодзі
+// Використовує прямий onerror fallback, тому навіть без попередньої перевірки все ок
+function imgOrEmoji(url, emoji, size, extraStyle) {
+size = size || 56;
+extraStyle = extraStyle || "";
+// одразу додаємо <img> з onerror → підмінюємо на емодзі
+// це найшвидший спосіб — не чекаємо на перевірку
+const uid = "x" + Math.random().toString(36).slice(2, 9);
+return '<img src="'+url+'" alt="" style="display:none;width:'+size+'px;height:'+size+'px;object-fit:contain;'+extraStyle+'" onload="this.style.display=\'block\';var e=document.getElementById(\''+uid+'\');if(e)e.style.display=\'none\';" onerror="this.remove();var e=document.getElementById(\''+uid+'\');if(e)e.style.display=\'block\';"><span id="'+uid+'" style="display:block;font-size:'+(size*0.85)+'px;line-height:1;'+extraStyle+'">'+emoji+'</span>';
+}
 
 // ============ СКІНИ ============
 const SKINS = [];
@@ -207,54 +232,30 @@ const rar = i <= 25 ? "common" : i <= 38 ? "uncommon" : i <= 45 ? "rare" : i <= 
 SKINS.push({ id: "gun_"+i, name: GUN_NAMES[i-1], type: "gun", rarity: rar, img: "textures/skins/gun_"+String(i).padStart(2,'0')+".png" });
 }
 
-// ============ 25 ЯЩИКІВ З РІЗНИМИ ШАНСАМИ ============
+// ============ 25 ЯЩИКІВ ============
 const CASE_NAMES = ["Дерев'яний","Залізний","Сталевий","Бронзовий","Срібний","Золотий","Платиновий","Алмазний","Кристальний","Льодовий","Вогняний","Грозовий","Тіньовий","Смарагдовий","Рубіновий","Сапфіровий","Аметистовий","Космічний","Вулканічний","Океанський","Лісовий","Пустельний","Арктичний","Королівський","Імператорський"];
 const CASE_PRICES = [5,10,15,25,40,60,85,115,150,190,240,300,370,450,540,650,780,930,1100,1300,1550,1850,2200,2700,3500];
-
-// Ваги для кожного кейсу [common, uncommon, rare, mythical, legendary, ancient]
 const CASE_WEIGHTS = [
-[80,15,4,0.9,0.1,0],       // 1
-[75,18,5,1.5,0.4,0.1],     // 2
-[70,20,7,2,0.8,0.2],       // 3
-[65,22,9,2.8,1,0.2],       // 4
-[60,24,11,3.5,1.3,0.2],    // 5
-[55,26,13,4,1.7,0.3],      // 6
-[50,27,15,5,2.3,0.5],      // 7
-[45,28,17,6,3,0.7],        // 8
-[40,29,19,7,3.8,0.9],      // 9
-[35,30,21,8,4.5,1.2],      // 10
-[32,30,22,9,5,1.5],        // 11
-[28,30,24,10,6,2],         // 12
-[25,29,25,12,7,2],         // 13
-[22,28,26,13,8,3],         // 14
-[20,27,27,14,9,3],         // 15
-[18,26,28,15,10,3],        // 16
-[15,25,29,16,12,3],        // 17
-[13,24,29,17,13,4],        // 18
-[11,22,30,18,14,5],        // 19
-[9,21,30,19,15,6],         // 20
-[7,19,30,20,17,7],         // 21
-[6,17,29,21,18,9],         // 22
-[5,15,28,22,19,11],        // 23
-[4,13,27,23,20,13],        // 24
-[3,11,26,24,21,15]         // 25
+[80,15,4,0.9,0.1,0],[75,18,5,1.5,0.4,0.1],[70,20,7,2,0.8,0.2],[65,22,9,2.8,1,0.2],[60,24,11,3.5,1.3,0.2],
+[55,26,13,4,1.7,0.3],[50,27,15,5,2.3,0.5],[45,28,17,6,3,0.7],[40,29,19,7,3.8,0.9],[35,30,21,8,4.5,1.2],
+[32,30,22,9,5,1.5],[28,30,24,10,6,2],[25,29,25,12,7,2],[22,28,26,13,8,3],[20,27,27,14,9,3],
+[18,26,28,15,10,3],[15,25,29,16,12,3],[13,24,29,17,13,4],[11,22,30,18,14,5],[9,21,30,19,15,6],
+[7,19,30,20,17,7],[6,17,29,21,18,9],[5,15,28,22,19,11],[4,13,27,23,20,13],[3,11,26,24,21,15]
 ];
 const CASE_MULT = [1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,5,5,5,5,5,8,8,8,8,12];
+const RARITY_KEYS = ["common","uncommon","rare","mythical","legendary","ancient"];
 
 const CASES = [];
 for (let i = 0; i < 25; i++) {
-const w = CASE_WEIGHTS[i];
 CASES.push({
 id: "case_"+String(i+1).padStart(2,'0'),
 name: '«'+CASE_NAMES[i]+'»',
 price: CASE_PRICES[i],
 mult: CASE_MULT[i],
-weights: w,
+weights: CASE_WEIGHTS[i],
 img: "textures/cases/case_"+String(i+1).padStart(2,'0')+".png"
 });
 }
-
-const RARITY_KEYS = ["common","uncommon","rare","mythical","legendary","ancient"];
 
 function pickSkinFromWeights(weights, mult) {
 const total = weights.reduce(function(s, w) { return s + w; }, 0);
@@ -270,7 +271,6 @@ return { skin: skin, price: RARITY[skin.rarity].basePrice * mult };
 }
 
 function pickSkinCoffin() {
-// Гробовець: 60% legendary, 40% ancient — тільки ножі/рукавички
 const knifeGloves = SKINS.filter(function(s){ return s.type === "knife" || s.type === "gloves"; });
 const legendaries = knifeGloves.filter(function(s){ return s.rarity === "legendary"; });
 const ancients = knifeGloves.filter(function(s){ return s.rarity === "ancient"; });
@@ -279,6 +279,10 @@ let skin;
 if (roll < 0.6) skin = legendaries[Math.floor(Math.random() * legendaries.length)];
 else skin = ancients[Math.floor(Math.random() * ancients.length)];
 return { skin: skin, price: RARITY[skin.rarity].basePrice * 20 };
+}
+
+function pickRandomSkin() {
+return SKINS[Math.floor(Math.random() * SKINS.length)];
 }
 
 // ============ АВАТАР ============
@@ -317,13 +321,14 @@ renderInventory();
 
 function renderCases() {
 let html = "";
-for (const c of CASES) {
-const idx = CASES.indexOf(c);
-const badge = idx >= 20 ? '<div class="case-badge">TOP</div>' : idx >= 12 ? '<div class="case-badge gold">PRO</div>' : '';
-const img = c.img;
+for (let i = 0; i < CASES.length; i++) {
+const c = CASES[i];
+const badge = i >= 20 ? '<div class="case-badge">TOP</div>' : i >= 12 ? '<div class="case-badge gold">PRO</div>' : '';
+const caseEmoji = "📦";
+const imgHtml = imgOrEmoji(c.img, caseEmoji, 64);
 html += '<div class="case-card" data-case="'+c.id+'" data-price="'+c.price+'">'
 + badge
-+ '<div class="case-img">📦</div>'
++ '<div class="case-img">'+imgHtml+'</div>'
 + '<div class="case-name">'+c.name+'</div>'
 + '<div class="case-price">'+c.price+' 🪙</div>'
 + '</div>';
@@ -337,9 +342,10 @@ openCaseModal(el.dataset.case, parseInt(el.dataset.price, 10));
 });
 });
 
+const coffinImg = imgOrEmoji("textures/coffin/coffin.png", "⚰️", 100);
 coffinSlot.innerHTML = '<div class="case-card coffin" data-case="coffin" data-price="5000">'
 + '<div class="case-badge">🔥 ТОП</div>'
-+ '<div class="case-img">⚰️</div>'
++ '<div class="case-img">'+coffinImg+'</div>'
 + '<div class="case-name" style="font-size:14px">Гробовець</div>'
 + '<div class="case-price">5000 🪙 · тільки ножі/рукавички</div>'
 + '</div>';
@@ -359,8 +365,9 @@ let html = "";
 for (const it of items) {
 const emoji = TYPE_EMOJI[it.type] || "📦";
 const color = it.rarityColor || (RARITY[it.rarity] ? RARITY[it.rarity].color : "#e8edf5");
+const icon = imgOrEmoji(it.img, emoji, 40);
 html += '<div class="inv-item" title="'+it.name+'" style="border-color:'+color+'">'
-+ '<span class="inv-emoji" style="color:'+color+'">'+emoji+'</span>'
++ '<div style="color:'+color+'">'+icon+'</div>'
 + '<div class="inv-name" style="color:'+color+'">'+it.name+'</div>'
 + '</div>';
 }
@@ -376,11 +383,12 @@ modalTitle.textContent = caseId === "coffin" ? "⚰️ Гробовець" : "�
 
 let html = "";
 for (let i = 0; i < 30; i++) {
-const s = pickSkinByRarity();
+const s = pickRandomSkin();
 const emoji = TYPE_EMOJI[s.type] || "📦";
 const color = RARITY[s.rarity].color;
+const icon = imgOrEmoji(s.img, emoji, 56);
 html += '<div class="roulette-item">'
-+ '<span class="r-emoji" style="color:'+color+'">'+emoji+'</span>'
++ '<div style="color:'+color+'">'+icon+'</div>'
 + '<div class="r-name" style="color:'+color+'">'+s.name+'</div>'
 + '</div>';
 }
@@ -394,12 +402,6 @@ $("rouletteWrap").style.display = "block";
 btnOpen.disabled = false;
 btnOpen.textContent = "🔓 Відкрити за " + price + " 🪙";
 modal.classList.add("show");
-}
-
-// Тимчасовий fallback для прев'ю рулетки
-function pickSkinByRarity() {
-const pool = SKINS.filter(function(s){ return s.rarity === "legendary" || s.rarity === "ancient"; });
-return pool[Math.floor(Math.random() * pool.length)];
 }
 
 async function openCurrentCase() {
@@ -426,11 +428,12 @@ const finalPrice = result.price;
 
 let html = "";
 for (let i = 0; i < 30; i++) {
-const s = i === 25 ? winner : pickSkinByRarity();
+const s = i === 25 ? winner : pickRandomSkin();
 const emoji = TYPE_EMOJI[s.type] || "📦";
 const color = RARITY[s.rarity].color;
+const icon = imgOrEmoji(s.img, emoji, 56);
 html += '<div class="roulette-item">'
-+ '<span class="r-emoji" style="color:'+color+'">'+emoji+'</span>'
++ '<div style="color:'+color+'">'+icon+'</div>'
 + '<div class="r-name" style="color:'+color+'">'+s.name+'</div>'
 + '</div>';
 }
@@ -448,9 +451,10 @@ rouletteTrack.style.transform = "translateX(" + targetX + "px)";
 setTimeout(async function() {
 const r = RARITY[winner.rarity];
 const emoji = TYPE_EMOJI[winner.type] || "📦";
+const winIcon = imgOrEmoji(winner.img, emoji, 140);
 resultBlock.style.display = "block";
 resultBlock.innerHTML = '<div class="win-item" style="color:'+r.color+'">'
-+ '<span class="w-emoji" style="color:'+r.color+'">'+emoji+'</span>'
++ '<div style="color:'+r.color+'">'+winIcon+'</div>'
 + '<div class="w-name" style="color:'+r.color+'">'+winner.name+'</div>'
 + '<div class="w-rarity" style="color:'+r.color+'">'+r.name+' · '+finalPrice+' 🪙</div>'
 + '</div>'
@@ -459,7 +463,7 @@ resultBlock.innerHTML = '<div class="win-item" style="color:'+r.color+'">'
 $("rouletteWrap").style.display = "none";
 btnOpen.style.display = "none";
 
-const newItem = { id: winner.id, name: winner.name, type: winner.type, rarity: winner.rarity, rarityName: r.name, rarityColor: r.color, sellPrice: finalPrice, uid: Date.now() + "_" + Math.random().toString(36).slice(2,6) };
+const newItem = { id: winner.id, name: winner.name, type: winner.type, rarity: winner.rarity, rarityName: r.name, rarityColor: r.color, sellPrice: finalPrice, img: winner.img, uid: Date.now() + "_" + Math.random().toString(36).slice(2,6) };
 
 document.getElementById("btnSell").addEventListener("click", async function() {
 state.coins += finalPrice;
@@ -504,11 +508,8 @@ if (!isProcessing) modal.classList.remove("show");
 
 // ============ FIREBASE ============
 async function saveState(fields) {
-try {
-await updateDoc(doc(db, "players", userId), fields);
-} catch (e) {
-console.warn("Firestore недоступний");
-}
+try { await updateDoc(doc(db, "players", userId), fields); }
+catch (e) { console.warn("Firestore недоступний"); }
 }
 
 async function initUser() {
@@ -535,9 +536,7 @@ state.name = d.name || state.name;
 saveLocal();
 render();
 });
-} catch (e) {
-console.warn("Firestore помилка:", e);
-}
+} catch (e) { console.warn("Firestore помилка:", e); }
 render();
 }
 
