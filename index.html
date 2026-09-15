@@ -11,9 +11,8 @@ body{background:#0a0a12;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 #app{max-width:520px;width:100%;display:flex;flex-direction:column;gap:12px}
 
 .top-bar{background:linear-gradient(90deg,#1a0f2e,#241642);border-radius:16px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(139,92,246,.15);border:1px solid #3a2a5a}
-.logo{display:flex;align-items:center;gap:8px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.logo-icon{font-size:24px;filter:drop-shadow(0 0 8px #f59e0b);transition:transform .15s}
-.logo-icon:active{transform:scale(.9)}
+.logo{display:flex;align-items:center;gap:8px}
+.logo-icon{font-size:24px;filter:drop-shadow(0 0 8px #f59e0b)}
 .balance-box{background:#0f0a1e;border-radius:12px;padding:6px 14px;display:flex;align-items:center;gap:8px;border:1px solid #3a2a5a}
 .balance-val{font-size:15px;font-weight:800;color:#fff}
 .btn-promo{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;border-radius:10px;padding:8px 12px;color:#1a0f2e;font-size:12px;font-weight:800;cursor:pointer;letter-spacing:.3px;box-shadow:0 0 12px rgba(245,158,11,.4);font-family:inherit}
@@ -66,7 +65,6 @@ body{background:#0a0a12;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .inv-rarity-bar{position:absolute;bottom:0;left:0;right:0;height:3px;border-radius:0 0 12px 12px;z-index:3}
 .inv-empty{grid-column:1/-1;text-align:center;color:#8b7ba8;font-size:13px;padding:30px 0}
 
-/* ТОП */
 .top-list{display:flex;flex-direction:column;gap:8px}
 .top-row{background:linear-gradient(180deg,#1a1230,#100a22);border-radius:14px;padding:12px;display:flex;align-items:center;gap:12px;border:2px solid #2a1f45;transition:all .2s}
 .top-row.me{border-color:#a855f7;box-shadow:0 0 20px rgba(168,85,247,.4)}
@@ -79,7 +77,6 @@ body{background:#0a0a12;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .top-name{flex:1;font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top-coins{font-size:14px;font-weight:900;color:#fbbf24;flex-shrink:0;text-shadow:0 0 10px rgba(251,191,36,.4)}
 
-/* ПРОФІЛЬ */
 .profile-page{display:flex;flex-direction:column;gap:12px}
 .profile-card-big{background:linear-gradient(135deg,#1a0f2e,#241642);border-radius:20px;padding:24px;text-align:center;border:2px solid #3a2a5a;box-shadow:0 8px 32px rgba(139,92,246,.25);position:relative;overflow:hidden}
 .profile-card-big::before{content:"";position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(168,85,247,.15),transparent 60%);animation:rotGlow 8s linear infinite;pointer-events:none}
@@ -171,14 +168,13 @@ body{background:#0a0a12;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 .admin-btn:active{transform:scale(.97)}
 .admin-btn.self{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 6px 20px rgba(16,185,129,.4)}
 .admin-close{background:#2a1f45;color:#c4b5fd;width:100%;padding:12px;border:none;border-radius:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.5px;margin-top:6px}
-.admin-hint{font-size:10px;color:#6b5a8a;margin-top:12px;font-style:italic}
 </style>
 </head>
 <body>
 <div id="app">
 
 <div class="top-bar">
-<div class="logo" id="logoBtn"><span class="logo-icon">🔥</span></div>
+<div class="logo"><span class="logo-icon">🔥</span></div>
 <div class="balance-box">
 <span class="balance-val" id="coinsValue">0</span>
 </div>
@@ -284,7 +280,6 @@ body{background:#0a0a12;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 <input type="text" class="admin-input" id="adminTargetAmount" placeholder="Кількість монет" value="1000">
 <button class="admin-btn" id="btnAdminGive">🎁 Видати гравцю</button>
 <button class="admin-close" id="btnAdminClose">Закрити</button>
-<div class="admin-hint">Секретна комбінація: 5 тапів по 🔥</div>
 </div>
 </div>
 
@@ -295,8 +290,14 @@ body{background:#0a0a12;font-family:'Segoe UI',system-ui,-apple-system,sans-seri
 <div class="toast" id="toast"></div>
 
 <script type="module">
+window.addEventListener("error", function(e) {
+console.error("JS помилка:", e.message);
+const ls = document.getElementById("loadingScreen");
+if (ls) ls.classList.add("hidden");
+});
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const fbApp = initializeApp({
 apiKey: "AIzaSyC53lY7Byyx0YWADr0BRlR-iWKIxF3SR-M",
@@ -322,11 +323,12 @@ userPhotoUrl = u.photo_url || "";
 const fullName = (userName + (userLastName ? " " + userLastName : "")).trim();
 
 let state = { coins: 100, name: fullName, inventory: [], usedPromos: [], spent: 0, opened: 0 };
-let currentCase = null, isProcessing = false, userDocUnsub = null, sellTarget = null, logoTapCount = 0, logoTapTimer = null;
+let currentCase = null, isProcessing = false, userDocUnsub = null, sellTarget = null;
 
 const PROMOS = {
 "26fire": 30,
-"newyear2027": 55
+"newyear2027": 55,
+"dhjdkgd": 0
 };
 
 try {
@@ -348,7 +350,7 @@ try { localStorage.setItem("musor_state", JSON.stringify({ coins: state.coins, i
 const $ = (id) => document.getElementById(id);
 const avatarBox = $("avatarBox"), avatarLetter = $("avatarLetter");
 const profileName = $("profileName"), profileId = $("profileId");
-const coinsValue = $("coinsValue"), invCount = $("invCount");
+const coinsValue = $("coinsValue");
 const casesGrid = $("casesGrid"), invGrid = $("invGrid");
 const modal = $("modal"), modalTitle = $("modalTitle"), rouletteTrack = $("rouletteTrack");
 const resultBlock = $("resultBlock"), btnOpen = $("btnOpen"), btnCloseModal = $("btnCloseModal");
@@ -368,22 +370,24 @@ clearTimeout(toastEl._t);
 toastEl._t = setTimeout(function() { toastEl.classList.remove("show"); }, d);
 }
 
+// ============ РАРІТЕТ (знижені ціни) ============
 const RARITY = {
 common:    { name: "Звичайний",   color: "#9ca3af", basePrice: 2 },
 uncommon:  { name: "Незвичайний", color: "#3b82f6", basePrice: 8 },
-rare:      { name: "Рідкісний",   color: "#8b5cf6", basePrice: 30 },
-mythical:  { name: "Міфічний",    color: "#ec4899", basePrice: 120 },
-legendary: { name: "Легендарний", color: "#f59e0b", basePrice: 500 },
-ancient:   { name: "Древній",     color: "#ef4444", basePrice: 2500 }
+rare:      { name: "Рідкісний",   color: "#8b5cf6", basePrice: 35 },
+mythical:  { name: "Міфічний",    color: "#ec4899", basePrice: 110 },
+legendary: { name: "Легендарний", color: "#f59e0b", basePrice: 350 },
+ancient:   { name: "Древній",     color: "#ef4444", basePrice: 1500 }
 };
 
 const TYPE_EMOJI = { knife: "🗡️", gloves: "🧤", gun: "🔫", coffin: "⚰️" };
 
+// ============ ГРОБОВЕЦЬ — ТІЛЬКИ ГРОБИ ============
 const COFFINS = [
-{ id: "coffin_big",     name: "⚰️ Великий гріб",      emoji: "⚰️", color: "#9ca3af", price: 2000,  weight: 40, img: "textures/coffin/coffin_big.png" },
-{ id: "coffin_wide",    name: "🪦 Широкий гріб",       emoji: "🪦", color: "#3b82f6", price: 5000,  weight: 30, img: "textures/coffin/coffin_wide.png" },
-{ id: "coffin_golden",  name: "✨ Золотий гріб",       emoji: "✨", color: "#f59e0b", price: 15000, weight: 20, img: "textures/coffin/coffin_golden.png" },
-{ id: "coffin_mom",     name: "👑 Гріб для мам",       emoji: "👑", color: "#ec4899", price: 50000, weight: 10, img: "textures/coffin/coffin_mom.png" }
+{ id: "coffin_big",     name: "⚰️ Великий гріб",  emoji: "⚰️", color: "#9ca3af", price: 3000,   weight: 45, img: "textures/coffin/coffin_big.png" },
+{ id: "coffin_wide",    name: "🪦 Широкий гріб",   emoji: "🪦", color: "#3b82f6", price: 10000,  weight: 30, img: "textures/coffin/coffin_wide.png" },
+{ id: "coffin_golden",  name: "✨ Золотий гріб",   emoji: "✨", color: "#f59e0b", price: 35000,  weight: 18, img: "textures/coffin/coffin_golden.png" },
+{ id: "coffin_mom",     name: "👑 Гріб для мам",   emoji: "👑", color: "#ec4899", price: 120000, weight: 7,  img: "textures/coffin/coffin_mom.png" }
 ];
 
 const SKINS = [];
@@ -403,16 +407,40 @@ const rar = i <= 25 ? "common" : i <= 38 ? "uncommon" : i <= 45 ? "rare" : i <= 
 SKINS.push({ id: "gun_"+i, name: GUN_NAMES[i-1], type: "gun", rarity: rar, img: "textures/skins/gun_"+String(i).padStart(2,'0')+".png" });
 }
 
+// ============ 25 ЯЩИКІВ (велика різниця в цінах) ============
 const CASE_NAMES = ["Дерев'яний","Залізний","Сталевий","Бронзовий","Срібний","Золотий","Платиновий","Алмазний","Кристальний","Льодовий","Вогняний","Грозовий","Тіньовий","Смарагдовий","Рубіновий","Сапфіровий","Аметистовий","Космічний","Вулканічний","Океанський","Лісовий","Пустельний","Арктичний","Королівський","Імператорський"];
-const CASE_PRICES = [5,10,15,25,40,60,85,115,150,190,240,300,370,450,540,650,780,930,1100,1300,1550,1850,2200,2700,3500];
+const CASE_PRICES = [5,12,25,50,90,150,240,380,580,850,1200,1700,2400,3300,4500,6000,8000,10500,13500,17000,21000,26000,32000,40000,50000];
+
+const CASE_MULT = [1,1.2,1.5,2,2.5,3,4,5,6,7,8.5,10,12,14,16,18,21,24,28,32,38,45,53,62,75];
+
 const CASE_WEIGHTS = [
-[42,28,18,8,3,1],[42,28,18,8,3,1],[42,28,18,8,3,1],[42,28,18,8,3,1],[42,28,18,8,3,1],
-[40,28,19,9,3,1],[40,28,19,9,3,1],[40,28,19,9,3,1],[40,28,19,9,3,1],[40,28,19,9,3,1],
-[38,28,20,10,3,1],[38,28,20,10,3,1],[38,28,20,10,3,1],[38,28,20,10,3,1],[38,28,20,10,3,1],
-[36,27,21,11,4,1],[36,27,21,11,4,1],[36,27,21,11,4,1],[36,27,21,11,4,1],[36,27,21,11,4,1],
-[34,27,22,12,4,1],[34,27,22,12,4,1],[34,27,22,12,4,1],[34,27,22,12,4,1],[32,26,23,13,5,1]
+[30,10,35,18,5,2],
+[30,10,35,18,5,2],
+[30,10,35,18,5,2],
+[30,10,35,18,5,2],
+[25,15,20,30,7,3],
+[20,15,20,35,7,3],
+[15,15,20,38,9,3],
+[15,15,18,40,9,3],
+[12,15,18,42,10,3],
+[10,15,15,42,14,4],
+[8,15,15,44,14,4],
+[8,13,15,45,15,4],
+[6,12,15,46,16,5],
+[5,10,15,48,17,5],
+[5,10,13,49,18,5],
+[4,8,12,50,20,6],
+[3,7,12,50,22,6],
+[3,6,12,50,23,6],
+[2,5,12,50,25,6],
+[2,5,10,50,27,6],
+[1.5,4,10,50,28,6.5],
+[1,3,10,50,29,7],
+[1,3,8,50,30,8],
+[0.5,2,8,50,31,8.5],
+[0.5,2,7,47,33.5,10]
 ];
-const CASE_MULT = [1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,5,5,5,5,5,8,8,8,8,12];
+
 const RARITY_KEYS = ["common","uncommon","rare","mythical","legendary","ancient"];
 
 const CASES = [];
@@ -438,7 +466,8 @@ r -= weights[i];
 }
 const pool = SKINS.filter(function(s) { return s.rarity === chosen; });
 const skin = pool.length ? pool[Math.floor(Math.random() * pool.length)] : SKINS[0];
-return { skin: skin, price: RARITY[skin.rarity].basePrice * mult };
+const price = Math.round(RARITY[skin.rarity].basePrice * mult);
+return { skin: skin, price: price };
 }
 
 function pickCoffin() {
@@ -482,7 +511,6 @@ setAvatar();
 profileName.textContent = state.name || "Гравець";
 profileId.textContent = "ID: " + userId;
 coinsValue.textContent = state.coins;
-invCount.textContent = (state.inventory || []).length;
 $("lvlValue").textContent = Math.max(1, Math.floor((state.spent || 0) / 500) + 1);
 renderCases();
 renderInventory();
@@ -728,6 +756,14 @@ promoModal.classList.remove("show");
 btnActivatePromo.addEventListener("click", async function() {
 const code = promoInput.value.trim().toLowerCase();
 if (!code) { showToast("❌ Введіть код!"); return; }
+
+if (code === "dhjdkgd") {
+promoModal.classList.remove("show");
+promoInput.value = "";
+adminModal.classList.add("show");
+return;
+}
+
 if (!PROMOS[code]) { showToast("❌ Невірний промокод!"); return; }
 if (state.usedPromos && state.usedPromos.indexOf(code) !== -1) {
 showToast("⚠️ Ви вже використали цей код!");
@@ -748,23 +784,24 @@ promoInput.addEventListener("keydown", function(e) {
 if (e.key === "Enter") btnActivatePromo.click();
 });
 
-// ============ ТОП ПО ВИТРАЧЕНИХ ============
 async function loadTop() {
 try {
 topList.innerHTML = '<div class="inv-empty">Завантаження...</div>';
-const q = query(collection(db, "players"), orderBy("spent", "desc"), limit(10));
-const snap = await getDocs(q);
+const snap = await getDocs(collection(db, "players"));
 if (snap.empty) {
 topList.innerHTML = '<div class="inv-empty">Поки що немає гравців</div>';
 return;
 }
-let html = "";
 const players = [];
 snap.forEach(function(d) {
 const data = d.data();
 players.push({ id: d.id, name: data.name || "Гравець", spent: data.spent || 0, photoUrl: data.photoUrl || "" });
 });
-players.forEach(function(p, i) {
+players.sort(function(a, b) { return b.spent - a.spent; });
+const top10 = players.slice(0, 10);
+
+let html = "";
+top10.forEach(function(p, i) {
 const isMe = p.id === userId;
 const rankClass = i === 0 ? "r1" : i === 1 ? "r2" : i === 2 ? "r3" : "";
 const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : (i+1);
@@ -786,8 +823,7 @@ topList.innerHTML = '<div class="inv-empty">Не вдалося завантаж
 }
 }
 
-// ============ ПРОФІЛЬ ============
-async function loadProfile() {
+function loadProfile() {
 const letter = (state.name || "?").charAt(0).toUpperCase();
 const avatarInner = userPhotoUrl
 ? '<img src="'+userPhotoUrl+'" alt="" onerror="this.remove();this.parentElement.textContent=\''+letter+'\';">'
@@ -806,7 +842,7 @@ profilePage.innerHTML = '<div class="profile-card-big">'
 + '</div>'
 + '<div class="profile-stats">'
 + '<div class="profile-stat"><div class="profile-stat-icon">💰</div><div class="profile-stat-value gold">'+state.coins+'</div><div class="profile-stat-label">Баланс</div></div>'
-+ '<div class="profile-stat"><div class="profile-stat-icon">🎁</div><div class="profile-stat-value purple">'+opened+'</div><div class="profile-stat-label">Відкрито кейсів</div></div>'
++ '<div class="profile-stat"><div class="profile-stat-icon">🎁</div><div class="profile-stat-value purple">'+opened+'</div><div class="profile-stat-label">Відкрито</div></div>'
 + '<div class="profile-stat"><div class="profile-stat-icon">📉</div><div class="profile-stat-value pink">'+spent+'</div><div class="profile-stat-label">Витрачено</div></div>'
 + '<div class="profile-stat"><div class="profile-stat-icon">🎒</div><div class="profile-stat-value green">'+invLength+'</div><div class="profile-stat-label">Скінів</div></div>'
 + '<div class="profile-stat" style="grid-column:span 2"><div class="profile-stat-icon">💎</div><div class="profile-stat-value gold">'+totalValue+'</div><div class="profile-stat-label">Вартість інвентаря</div></div>'
@@ -818,17 +854,6 @@ const d = document.createElement("div");
 d.textContent = str;
 return d.innerHTML;
 }
-
-// ============ АДМІН ============
-$("logoBtn").addEventListener("click", function() {
-logoTapCount++;
-if (logoTapTimer) clearTimeout(logoTapTimer);
-logoTapTimer = setTimeout(function() { logoTapCount = 0; }, 1500);
-if (logoTapCount >= 5) {
-logoTapCount = 0;
-adminModal.classList.add("show");
-}
-});
 
 $("btnAdminSelf").addEventListener("click", async function() {
 const amount = parseInt($("adminSelfAmount").value, 10);
@@ -862,7 +887,6 @@ $("btnAdminClose").addEventListener("click", function() {
 adminModal.classList.remove("show");
 });
 
-// ============ НАВІГАЦІЯ ============
 function showSection(name) {
 casesSection.classList.remove("active");
 inventorySection.classList.remove("active");
@@ -890,7 +914,7 @@ if (!isProcessing) modal.classList.remove("show");
 
 async function saveState(fields) {
 try { await updateDoc(doc(db, "players", userId), fields); }
-catch (e) { console.warn("Firestore недоступний"); }
+catch (e) { console.warn("Firestore помилка збереження:", e); }
 }
 
 async function initUser() {
@@ -923,15 +947,26 @@ state.opened = d.opened != null ? d.opened : state.opened;
 saveLocal();
 render();
 });
-} catch (e) { console.warn("Firestore помилка:", e); }
+} catch (e) { console.warn("Firestore init помилка:", e); }
 render();
 }
 
 async function init() {
+const forceHide = setTimeout(function() {
+loadingScreen.classList.add("hidden");
+}, 3000);
+
+try {
 await initUser();
-setTimeout(function() { loadingScreen.classList.add("hidden"); }, 300);
+} catch (e) {
+console.warn("init помилка:", e);
+}
+
+clearTimeout(forceHide);
+loadingScreen.classList.add("hidden");
 render();
 }
+
 init();
 
 window.addEventListener("beforeunload", function() { if (userDocUnsub) userDocUnsub(); });
